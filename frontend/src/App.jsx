@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
+import { Toaster } from 'sonner';
 
 import MainLayout from './layouts/MainLayout';
 
@@ -17,6 +18,9 @@ import RoleManagementPage from './pages/Admin/RoleManagementPage.jsx';
 import EvaluationPeriodManagementPage from './pages/Admin/EvaluationPeriodManagementPage.jsx';
 import EvaluationTemplateManagementPage from './pages/Admin/EvaluationTemplateManagementPage.jsx';
 import EmployeeEvaluationsPage from './pages/Admin/EmployeeEvaluationsPage.jsx';
+import AdminEvaluationDetailsPage from './pages/Admin/AdminEvaluationDetailsPage.jsx';
+import EvaluationTasksPage from './pages/Employee/EvaluationTasksPage.jsx';
+import EvaluationPage from './pages/Employee/EvaluationPage.jsx';
 
 import './App.css';
 
@@ -37,6 +41,7 @@ function App() {
 
     return (
         <Router>
+            <Toaster richColors position="top-right" />
             <Routes>
                 {/* Public Routes */}
                 <Route path="/sign-in" element={<SignInPage />} />
@@ -53,10 +58,12 @@ function App() {
                         <Route path="/admin/periods" element={<EvaluationPeriodManagementPage />} />
                         <Route path="/admin/templates" element={<EvaluationTemplateManagementPage />} />
                         <Route path="/admin/employee/:id/evaluations" element={<EmployeeEvaluationsPage />} />
+                        <Route path="/admin/evaluation/:evaluationId" element={<AdminEvaluationDetailsPage />} />
                     </Route>
                     <Route element={<ProtectedRoute allowedRoles={['EMPLOYEE']} />}>
                         <Route path="/employee/dashboard" element={<EmployeeDashboard />} />
-                        {/* Add other employee routes here */}
+                        <Route path="/employee/period/:periodId/tasks" element={<EvaluationTasksPage />} />
+                        <Route path="/employee/evaluation/:evaluationId" element={<EvaluationPage />} />
                     </Route>
                 </Route>
 

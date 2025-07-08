@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import EvaluationService from '../../services/evaluationService';
 import EvaluationPeriodService from '../../services/evaluationPeriodService';
 import EmployeeService from '../../services/employeeService';
@@ -68,11 +68,17 @@ const EmployeeEvaluationsPage = () => {
             {evaluations.length > 0 ? (
                 <ul className="space-y-4">
                     {evaluations.map(evaluation => (
-                        <li key={evaluation.id} className="p-4 bg-white rounded-lg shadow">
-                            <p><strong>From:</strong> {evaluation.evaluatorName}</p>
-                            <p><strong>To:</strong> {evaluation.evaluatedName}</p>
-                            <p><strong>Status:</strong> {evaluation.status}</p>
-                            {/* Add more details as needed */}
+                        <li key={evaluation.evaluationId}>
+                            <Link to={`/admin/evaluation/${evaluation.evaluationId}`} className="block p-4 bg-white rounded-lg shadow hover:bg-gray-100 transition-colors">
+                                <div className="flex justify-between items-center">
+                                    <div>
+                                        <p><strong>From:</strong> {evaluation.evaluator.fullName}</p>
+                                        <p><strong>To:</strong> {evaluation.evaluated.fullName}</p>
+                                        <p><strong>Status:</strong> {evaluation.status}</p>
+                                    </div>
+                                    <span className="text-indigo-600 hover:text-indigo-900">View Details</span>
+                                </div>
+                            </Link>
                         </li>
                     ))}
                 </ul>

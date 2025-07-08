@@ -12,9 +12,14 @@ import org.springframework.stereotype.Component;
 public class EvaluationConverter {
 
     public EvaluationDetailResponse ToDetailResponse(Evaluation evaluation) {
-        EmployeeSimpleResponse evaluatedDto = EmployeeSimpleResponse.builder()
+        EmployeeSimpleResponse evaluatedResponse = EmployeeSimpleResponse.builder()
             .id(evaluation.getEvaluated().getId())
             .fullName(evaluation.getEvaluated().getFullName())
+            .build();
+
+        EmployeeSimpleResponse evaluatorResponse = EmployeeSimpleResponse.builder()
+            .id(evaluation.getEvaluator().getId())
+            .fullName(evaluation.getEvaluator().getFullName())
             .build();
 
         List<AnswerDetailResponse> answerDtos = evaluation.getAnswers().stream()
@@ -29,7 +34,8 @@ public class EvaluationConverter {
         return EvaluationDetailResponse.builder()
             .evaluationId(evaluation.getId())
             .status(evaluation.getStatus())
-            .evaluatedEmployee(evaluatedDto)
+            .evaluator(evaluatorResponse)
+            .evaluated(evaluatedResponse)
             .answers(answerDtos)
             .build();
     }

@@ -13,6 +13,7 @@ import com.batuhan.feedback360.model.enums.EvaluationStatus;
 import com.batuhan.feedback360.model.request.AnswerPayload;
 import com.batuhan.feedback360.model.request.EmployeeRequest;
 import com.batuhan.feedback360.model.request.SubmitAnswersRequest;
+import com.batuhan.feedback360.model.response.ApiResponse;
 import com.batuhan.feedback360.model.response.EmployeeDetailResponse;
 import com.batuhan.feedback360.model.response.EmployeeSimpleResponse;
 import com.batuhan.feedback360.model.response.EvaluationDetailResponse;
@@ -22,6 +23,7 @@ import com.batuhan.feedback360.repository.EmployeeRepository;
 import com.batuhan.feedback360.repository.EvaluationPeriodRepository;
 import com.batuhan.feedback360.repository.EvaluationRepository;
 import com.batuhan.feedback360.repository.RoleRepository;
+import com.batuhan.feedback360.util.MessageHandler;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import java.time.LocalDate;
@@ -46,8 +48,10 @@ public class EmployeeService {
     private final EvaluationPeriodConverter evaluationPeriodConverter;
     private final EvaluationPeriodRepository evaluationPeriodRepository;
     private final EvaluationConverter evaluationConverter;
+    private final MessageHandler messageHandler;
 
-    public Employee createEmployee(EmployeeRequest request) {
+
+    public ApiResponse<Employee> createEmployee(EmployeeRequest request) {
         Company company = new Company();
         company.setId(principalResolver.getCompanyId());
 
@@ -56,136 +60,153 @@ public class EmployeeService {
             .lastName(request.getLastName())
             .email(request.getEmail())
             .company(company)
-            .isAdmin(request.isAdmin())
+            .isAdmin(request.getIsAdmin())
             .invitationToken(UUID.randomUUID().toString())
             .invitationValidityDate(LocalDateTime.now().plusDays(7))
             .build();
 
-        // TODO: Bu aşamada çalışana davet maili gönderilir.
-        // Mail içeriğinde `invitationToken` bulunur.
+        // TODO: send invitation mail with 'invitationToken'
 
-        return employeeRepository.save(employee);
+        return ApiResponse.success(employeeRepository.save(employee), "");
     }
 
     @Transactional
-    public List<EmployeeDetailResponse> getAllEmployees() {
+    public ApiResponse<List<EmployeeDetailResponse>> getAllEmployees() {
         Company company = new Company();
         company.setId(principalResolver.getCompanyId());
 
-        return employeeRepository.findByCompanyId(company.getId())
+        return ApiResponse.success(employeeRepository.findByCompanyId(company.getId())
             .stream()
             .map(employeeConverter::toEmployeeDetailResponse)
-            .collect(Collectors.toList());
+            .collect(Collectors.toList()), "");
     }
 
     @Transactional
-    public EmployeeDetailResponse getEmployeeById(Integer employeeId) {
+    public ApiResponse<EmployeeDetailResponse> getEmployeeById(Integer employeeId) {
         Company company = new Company();
         company.setId(principalResolver.getCompanyId());
 
-        Employee employee = employeeRepository.findById(employeeId)
-            .orElseThrow(() -> new RuntimeException("Employee not found with id: " + employeeId));
-
-        if (!employee.getCompany().getId().equals(company.getId())) {
-            throw new SecurityException("You do not have permission to view this employee.");
+        Employee employee = employeeRepository.findById(employeeId).orElse(null);
+        if (employee == null) {
+            return ApiResponse.failure(messageHandler.getMessage("error.employee.notFound", employeeId));
         }
 
-        return employeeConverter.toEmployeeDetailResponse(employee);
+        if (!employee.getCompany().getId().equals(company.getId())) {
+            return ApiResponse.failure(messageHandler.getMessage("error.employee.noPermissionView"));
+        }
+        return ApiResponse.success(employeeConverter.toEmployeeDetailResponse(employee), "");
     }
 
     @Transactional
-    public EmployeeDetailResponse assignRoleToEmployee(Integer employeeId, Integer roleId) {
+    public ApiResponse<EmployeeDetailResponse> assignRoleToEmployee(Integer employeeId, Integer roleId) {
         Company company = new Company();
         company.setId(principalResolver.getCompanyId());
 
-        Employee employee = employeeRepository.findById(employeeId)
-            .orElseThrow(() -> new RuntimeException("Employee not found with id: " + employeeId));
-
-        Role role = roleRepository.findById(roleId)
-            .orElseThrow(() -> new RuntimeException("Role not found with id: " + roleId));
+        Employee employee = employeeRepository.findById(employeeId).orElse(null);
+        if (employee == null) {
+            return ApiResponse.failure(messageHandler.getMessage("error.employee.notFound", employeeId));
+        }
+        Role role = roleRepository.findById(roleId).orElse(null);
+        if (role == null) {
+            return ApiResponse.failure(messageHandler.getMessage("error.role.notFound", roleId));
+        }
 
         if (!employee.getCompany().getId().equals(company.getId()) || !role.getCompany().getId().equals(company.getId())) {
-            throw new SecurityException("You do not have permission to perform this assignment.");
+            return ApiResponse.failure(messageHandler.getMessage("error.role.assignmentPermission"));
         }
 
         employee.getRoles().add(role);
         Employee updatedEmployee = employeeRepository.save(employee);
-
-        return employeeConverter.toEmployeeDetailResponse(updatedEmployee);
+        return ApiResponse.success(employeeConverter.toEmployeeDetailResponse(updatedEmployee), "");
     }
 
     @Transactional
-    public EmployeeDetailResponse removeRoleFromEmployee(Integer employeeId, Integer roleId) {
+    public ApiResponse<EmployeeDetailResponse> removeRoleFromEmployee(Integer employeeId, Integer roleId) {
         Company company = new Company();
         company.setId(principalResolver.getCompanyId());
 
-        Employee employee = employeeRepository.findById(employeeId)
-            .orElseThrow(() -> new RuntimeException("Employee not found with id: " + employeeId));
-        Role role = roleRepository.findById(roleId)
-            .orElseThrow(() -> new RuntimeException("Role not found with id: " + roleId));
+        Employee employee = employeeRepository.findById(employeeId).orElse(null);
+        if (employee == null) {
+            return ApiResponse.failure(messageHandler.getMessage("error.employee.notFound", employeeId));
+        }
+        Role role = roleRepository.findById(roleId).orElse(null);
+        if (role == null) {
+            return ApiResponse.failure(messageHandler.getMessage("error.role.notFound", roleId));
+        }
 
         if (!employee.getCompany().equals(company) || !role.getCompany().equals(company)) {
-            throw new SecurityException("You do not have permission to perform this action.");
+            return ApiResponse.failure(messageHandler.getMessage("error.role.actionPermission"));
         }
 
         if (!employee.getRoles().contains(role)) {
-            throw new IllegalArgumentException("Employee does not have the specified role.");
+            return ApiResponse.failure(messageHandler.getMessage("error.role.employeeNotHave"));
         }
 
         employee.getRoles().remove(role);
         Employee updatedEmployee = employeeRepository.save(employee);
-        return employeeConverter.toEmployeeDetailResponse(updatedEmployee);
+        return ApiResponse.success(employeeConverter.toEmployeeDetailResponse(updatedEmployee), "");
     }
 
     @Transactional
-    public EmployeeDetailResponse updateEmployee(Integer employeeId, EmployeeRequest request) {
+    public ApiResponse<EmployeeDetailResponse> updateEmployee(Integer employeeId, EmployeeRequest request) {
         Integer companyId = principalResolver.getCompanyId();
 
-        Employee employee = employeeRepository.findById(employeeId)
-            .orElseThrow(() -> new RuntimeException("Employee not found with id: " + employeeId));
+        Employee employee = employeeRepository.findById(employeeId).orElse(null);
+        if (employee == null) {
+            return ApiResponse.failure(messageHandler.getMessage("error.employee.notFound", employeeId));
+        }
 
         if (!employee.getCompany().getId().equals(companyId)) {
-            throw new SecurityException("You do not have permission to update this employee.");
+            return ApiResponse.failure(messageHandler.getMessage("error.employee.noPermissionUpdate"));
         }
 
         employee.setFirstName(request.getFirstName());
         employee.setLastName(request.getLastName());
         employee.setEmail(request.getEmail());
-        employee.setIsAdmin(request.isAdmin());
+        employee.setIsAdmin(request.getIsAdmin());
 
         Employee updatedEmployee = employeeRepository.save(employee);
-        return employeeConverter.toEmployeeDetailResponse(updatedEmployee);
+        return ApiResponse.success(employeeConverter.toEmployeeDetailResponse(updatedEmployee), "");
     }
 
-    public List<EvaluationPeriodResponse> getEmployeePeriods() {
+    public ApiResponse<List<EvaluationPeriodResponse>> getEmployeePeriods() {
         Integer currentEmployeeId = principalResolver.getUserId();
 
-        Employee currentUser = employeeRepository.findById(currentEmployeeId)
-            .orElseThrow(() -> new EntityNotFoundException("Mevcut çalışan bulunamadı. ID: " + currentEmployeeId));
+        Employee currentEmployee = employeeRepository.findById(currentEmployeeId).orElse(null);
+        if (currentEmployee == null) {
+            return ApiResponse.failure(messageHandler.getMessage("error.employee.notFound", currentEmployeeId));
+        }
 
-        List<Evaluation> userInvolvedEvaluations = evaluationRepository.findByEvaluatorOrEvaluated(currentUser, currentUser);
+        List<Evaluation> userInvolvedEvaluations = evaluationRepository.findByEvaluatorOrEvaluated(currentEmployee, currentEmployee);
 
         List<EvaluationPeriod> distinctPeriods = userInvolvedEvaluations.stream()
             .map(Evaluation::getPeriod).distinct().toList();
 
-        return distinctPeriods.stream()
-            .map(evaluationPeriodConverter::toEvaluationPeriodResponse)
-            .collect(Collectors.toList());
+        return ApiResponse.success(
+            distinctPeriods.stream()
+                .map(evaluationPeriodConverter::toEvaluationPeriodResponse)
+                .collect(Collectors.toList()),
+            "");
     }
 
-    public List<EvaluationTaskResponse> getEvaluationTasksForPeriod(Integer periodId) {
+    public ApiResponse<List<EvaluationTaskResponse>> getEvaluationTasksForPeriod(Integer periodId) {
         Integer currentEmployeeId = principalResolver.getUserId();
-        Employee currentUser = employeeRepository.findById(currentEmployeeId)
-            .orElseThrow(() -> new EntityNotFoundException("Mevcut çalışan bulunamadı. ID: " + currentEmployeeId));
+        Employee currentEmployee = employeeRepository.findById(currentEmployeeId).orElse(null);
+        if (currentEmployee == null) {
+            return ApiResponse.failure(messageHandler.getMessage("error.employee.notFound", currentEmployeeId));
+        }
 
-        EvaluationPeriod period = evaluationPeriodRepository.findById(periodId)
-            .orElseThrow(() -> new EntityNotFoundException("Değerlendirme dönemi bulunamadı. ID: " + periodId));
+        EvaluationPeriod period = evaluationPeriodRepository.findById(periodId).orElse(null);
+        if (period == null) {
+            return ApiResponse.failure(messageHandler.getMessage("error.period.notFound", periodId));
+        }
 
-        List<Evaluation> evaluations = evaluationRepository.findByEvaluatorAndPeriod(currentUser, period);
+        List<Evaluation> evaluations = evaluationRepository.findByEvaluatorAndPeriod(currentEmployee, period);
 
-        return evaluations.stream()
-            .map(this::convertToTaskResponse)
-            .collect(Collectors.toList());
+        return ApiResponse.success(
+            evaluations.stream().map(this::convertToTaskResponse)
+                .collect(Collectors.toList()),
+            "");
     }
 
     private EvaluationTaskResponse convertToTaskResponse(Evaluation evaluation) {
@@ -205,14 +226,16 @@ public class EmployeeService {
     }
 
     @Transactional
-    public EvaluationDetailResponse startOrGetEvaluation(Integer evaluationId) {
+    public ApiResponse<EvaluationDetailResponse> startOrGetEvaluation(Integer evaluationId) {
         Integer currentEmployeeId = principalResolver.getUserId();
 
-        Evaluation evaluation = evaluationRepository.findByIdWithAnswersAndQuestions(evaluationId)
-            .orElseThrow(() -> new EntityNotFoundException("Değerlendirme bulunamadı: " + evaluationId));
+        Evaluation evaluation = evaluationRepository.findByIdWithAnswersAndQuestions(evaluationId).orElse(null);
+        if (evaluation == null) {
+            return ApiResponse.failure(messageHandler.getMessage("error.evaluation.notFound", evaluationId));
+        }
 
         if (!evaluation.getEvaluator().getId().equals(currentEmployeeId)) {
-            throw new AccessDeniedException("Bu değerlendirmeye erişim yetkiniz yok.");
+            return ApiResponse.failure(messageHandler.getMessage("error.evaluation.accessDenied"));
         }
         boolean isPeriodOver = LocalDate.now().isAfter(evaluation.getPeriod().getEndDate());
 
@@ -220,24 +243,26 @@ public class EmployeeService {
             evaluation.setStatus(EvaluationStatus.IN_PROGRESS);
             evaluationRepository.save(evaluation);
         }
-        return evaluationConverter.ToDetailResponse(evaluation);
+        return ApiResponse.success(evaluationConverter.ToDetailResponse(evaluation), "");
     }
 
     @Transactional
-    public EvaluationDetailResponse submitAnswers(Integer evaluationId, SubmitAnswersRequest request) {
+    public ApiResponse<EvaluationDetailResponse> submitAnswers(Integer evaluationId, SubmitAnswersRequest request) {
         Integer currentEmployeeId = principalResolver.getUserId();
 
-        Evaluation evaluation = evaluationRepository.findByIdWithAnswersAndQuestions(evaluationId)
-            .orElseThrow(() -> new EntityNotFoundException("Değerlendirme bulunamadı: " + evaluationId));
+        Evaluation evaluation = evaluationRepository.findByIdWithAnswersAndQuestions(evaluationId).orElse(null);
+        if (evaluation == null) {
+            return ApiResponse.failure(messageHandler.getMessage("error.evaluation.notFound", evaluationId));
+        }
 
         if (LocalDate.now().isAfter(evaluation.getPeriod().getEndDate())) {
-            throw new IllegalStateException("Değerlendirme dönemi sona erdiği için cevap gönderemezsiniz.");
+            return ApiResponse.failure(messageHandler.getMessage("error.evaluation.periodOver"));
         }
         if (!evaluation.getEvaluator().getId().equals(currentEmployeeId)) {
-            throw new AccessDeniedException("Bu değerlendirmeye cevap gönderemezsiniz.");
+            return ApiResponse.failure(messageHandler.getMessage("error.evaluation.submitAccessDenied"));
         }
         if (evaluation.getStatus() == EvaluationStatus.COMPLETED) {
-            throw new IllegalStateException("Bu değerlendirme zaten tamamlanmış ve değiştirilemez.");
+            return ApiResponse.failure(messageHandler.getMessage("error.evaluation.alreadyCompleted"));
         }
 
         Map<Integer, String> submittedAnswersMap = request.getAnswers().stream()
@@ -256,6 +281,6 @@ public class EmployeeService {
             evaluation.setDeliveryDate(LocalDateTime.now());
         }
         Evaluation updatedEvaluation = evaluationRepository.save(evaluation);
-        return evaluationConverter.ToDetailResponse(updatedEvaluation);
+        return ApiResponse.success(evaluationConverter.ToDetailResponse(updatedEvaluation), "");
     }
 }

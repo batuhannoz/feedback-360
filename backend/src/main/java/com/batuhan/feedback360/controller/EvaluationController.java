@@ -1,6 +1,7 @@
 package com.batuhan.feedback360.controller;
 
 import com.batuhan.feedback360.model.request.SubmitAnswersRequest;
+import com.batuhan.feedback360.model.response.ApiResponse;
 import com.batuhan.feedback360.model.response.EvaluationDetailResponse;
 import com.batuhan.feedback360.model.response.GivenEvaluationResponse;
 import com.batuhan.feedback360.model.response.ParticipantCompletionStatusResponse;
@@ -26,25 +27,25 @@ public class EvaluationController {
 
     @GetMapping("/periods/{periodId}/participants")
     @PreAuthorize("hasAnyRole('COMPANY', 'ADMIN')")
-    public ResponseEntity<List<ParticipantCompletionStatusResponse>> getParticipantStatus(@PathVariable Integer periodId) {
+    public ResponseEntity<ApiResponse<List<ParticipantCompletionStatusResponse>>> getParticipantStatus(@PathVariable Integer periodId) {
         return ResponseEntity.ok(evaluationService.getParticipantCompletionStatus(periodId));
     }
 
     @GetMapping("/periods/{periodId}/user/{userId}/received")
     @PreAuthorize("hasAnyRole('COMPANY', 'ADMIN')")
-    public ResponseEntity<List<ReceivedEvaluationResponse>> getReceivedEvaluations(@PathVariable Integer periodId, @PathVariable Integer userId) {
+    public ResponseEntity<ApiResponse<List<ReceivedEvaluationResponse>>> getReceivedEvaluations(@PathVariable Integer periodId, @PathVariable Integer userId) {
         return ResponseEntity.ok(evaluationService.getReceivedEvaluationsForUser(periodId, userId));
     }
 
     @GetMapping("/periods/{periodId}/user/{userId}/given")
     @PreAuthorize("hasAnyRole('COMPANY', 'ADMIN')")
-    public ResponseEntity<List<GivenEvaluationResponse>> getGivenEvaluations(@PathVariable Integer periodId, @PathVariable Integer userId) {
+    public ResponseEntity<ApiResponse<List<GivenEvaluationResponse>>> getGivenEvaluations(@PathVariable Integer periodId, @PathVariable Integer userId) {
         return ResponseEntity.ok(evaluationService.getGivenEvaluationsForUser(periodId, userId));
     }
 
     @GetMapping("/{evaluationId}/details")
     @PreAuthorize("hasAnyRole('COMPANY', 'ADMIN')")
-    public ResponseEntity<EvaluationDetailResponse> getEvaluationDetailsForAdmin(@PathVariable Integer evaluationId) {
+    public ResponseEntity<ApiResponse<EvaluationDetailResponse>> getEvaluationDetailsForAdmin(@PathVariable Integer evaluationId) {
         return ResponseEntity.ok(evaluationService.getEvaluationDetailsForAdmin(evaluationId));
     }
 }

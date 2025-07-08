@@ -1,16 +1,28 @@
 import React, { useState, useEffect } from 'react';
 import evaluationPeriodService from '../../services/evaluationPeriodService';
+import evaluationTemplateService from '../../services/evaluationTemplateService';
 import { EvaluationPeriodRequest } from '../../models/request/EvaluationPeriodRequest';
 import Modal from '../../components/Modal';
 
 const EvaluationPeriodManagementPage = () => {
-    const [periods, setPeriods] = useState([]);
+        const [periods, setPeriods] = useState([]);
+    const [templates, setTemplates] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [newPeriod, setNewPeriod] = useState({ name: '', description: '', startDate: '', endDate: '' });
+    const [newPeriod, setNewPeriod] = useState({ name: '', description: '', startDate: '', endDate: '', templateIds: [] });
 
-    useEffect(() => {
+        useEffect(() => {
         fetchPeriods();
+        fetchTemplates();
     }, []);
+
+        const fetchTemplates = async () => {
+        try {
+            const response = await evaluationTemplateService.getAllTemplates();
+            setTemplates(response.data);
+        } catch (error) {
+            console.error('Error fetching evaluation templates:', error);
+        }
+    };
 
     const fetchPeriods = async () => {
         try {
@@ -24,19 +36,29 @@ const EvaluationPeriodManagementPage = () => {
     const handleCreatePeriod = async (e) => {
         e.preventDefault();
         try {
-            const periodRequest = new EvaluationPeriodRequest(newPeriod.name, newPeriod.description, newPeriod.startDate, newPeriod.endDate);
-            await evaluationPeriodService.createPeriod(periodRequest);
+            const periodRequest = new EvaluationPeriodRequest(newPeriod.name, newPeriod.startDate, newPeriod.endDate, newPeriod.templateIds);
+            await evaluationPeriodService.createEvaluationPeriod(periodRequest);
             fetchPeriods();
             setIsModalOpen(false);
-            setNewPeriod({ name: '', description: '', startDate: '', endDate: '' });
+                        setNewPeriod({ name: '', description: '', startDate: '', endDate: '', templateIds: [] });
         } catch (error) {
             console.error('Error creating evaluation period:', error);
         }
     };
 
     const handleInputChange = (e) => {
-        const { name, value } = e.target;
-        setNewPeriod({ ...newPeriod, [name]: value });
+                const { name, value, type, checked } = e.target;
+        if (type === 'checkbox') {
+            const templateId = parseInt(name);
+            setNewPeriod(prev => {
+                const newTemplateIds = checked
+                    ? [...prev.templateIds, templateId]
+                    : prev.templateIds.filter(id => id !== templateId);
+                return { ...prev, templateIds: newTemplateIds };
+            });
+        } else {
+                    setNewPeriod({ ...newPeriod, [name]: value });
+        }
     };
 
     return (
@@ -62,9 +84,30 @@ const EvaluationPeriodManagementPage = () => {
                         <label className="block text-gray-700">Start Date</label>
                         <input type="date" name="startDate" value={newPeriod.startDate} onChange={handleInputChange} className="w-full p-2 border rounded" required />
                     </div>
-                    <div className="mb-4">
+                                        <div className="mb-4">
                         <label className="block text-gray-700">End Date</label>
                         <input type="date" name="endDate" value={newPeriod.endDate} onChange={handleInputChange} className="w-full p-2 border rounded" required />
+                    </div>
+
+                    <div className="mb-4">
+                        <label className="block text-gray-700 mb-2 font-semibold">Evaluation Templates</label>
+                        <div className="max-h-48 overflow-y-auto border rounded-md p-3 bg-gray-50">
+                            {templates.map(template => (
+                                <div key={template.id} className="flex items-center mb-2">
+                                    <input
+                                        type="checkbox"
+                                        id={`template-${template.id}`}
+                                        name={template.id}
+                                        checked={newPeriod.templateIds.includes(template.id)}
+                                        onChange={handleInputChange}
+                                        className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                                    />
+                                    <label htmlFor={`template-${template.id}`} className="ml-3 block text-sm text-gray-900">
+                                        {template.name}
+                                    </label>
+                                </div>
+                            ))}
+                        </div>
                     </div>
                     <div className="flex justify-end">
                         <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 mr-2 text-gray-700 bg-gray-200 rounded hover:bg-gray-300">

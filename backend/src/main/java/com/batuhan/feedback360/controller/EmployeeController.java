@@ -1,7 +1,9 @@
 package com.batuhan.feedback360.controller;
 
+import com.batuhan.feedback360.model.entitiy.Employee;
 import com.batuhan.feedback360.model.request.EmployeeRequest;
 import com.batuhan.feedback360.model.request.SubmitAnswersRequest;
+import com.batuhan.feedback360.model.response.ApiResponse;
 import com.batuhan.feedback360.model.response.EmployeeDetailResponse;
 import com.batuhan.feedback360.model.response.EvaluationDetailResponse;
 import com.batuhan.feedback360.model.response.EvaluationPeriodResponse;
@@ -29,63 +31,61 @@ public class EmployeeController {
 
     @PutMapping
     @PreAuthorize("hasAnyRole('COMPANY', 'ADMIN')")
-    public ResponseEntity<?> createEmployee(@RequestBody EmployeeRequest request) {
+    public ResponseEntity<ApiResponse<Employee>> createEmployee(@RequestBody EmployeeRequest request) {
         return ResponseEntity.ok(employeeService.createEmployee(request));
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyRole('COMPANY', 'ADMIN')")
-    public ResponseEntity<EmployeeDetailResponse> updateEmployee(@PathVariable Integer id, @RequestBody EmployeeRequest request) {
+    public ResponseEntity<ApiResponse<EmployeeDetailResponse>> updateEmployee(@PathVariable Integer id, @RequestBody EmployeeRequest request) {
         return ResponseEntity.ok(employeeService.updateEmployee(id, request));
     }
 
     @GetMapping
     @PreAuthorize("hasAnyRole('COMPANY', 'ADMIN')")
-    public ResponseEntity<List<EmployeeDetailResponse>> listEmployees() {
+    public ResponseEntity<ApiResponse<List<EmployeeDetailResponse>>> listEmployees() {
         return ResponseEntity.ok(employeeService.getAllEmployees());
     }
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('COMPANY', 'ADMIN')")
-    public ResponseEntity<EmployeeDetailResponse> getEmployeeDetails(@PathVariable Integer id) {
+    public ResponseEntity<ApiResponse<EmployeeDetailResponse>> getEmployeeDetails(@PathVariable Integer id) {
         return ResponseEntity.ok(employeeService.getEmployeeById(id));
     }
 
     @PostMapping("/{employeeId}/role/{roleId}")
     @PreAuthorize("hasAnyRole('COMPANY', 'ADMIN')")
-    public ResponseEntity<EmployeeDetailResponse> assignRoleToEmployee(@PathVariable Integer employeeId, @PathVariable Integer roleId) {
+    public ResponseEntity<ApiResponse<EmployeeDetailResponse>> assignRoleToEmployee(@PathVariable Integer employeeId, @PathVariable Integer roleId) {
         return ResponseEntity.ok(employeeService.assignRoleToEmployee(employeeId, roleId));
     }
 
     @DeleteMapping("/{employeeId}/role/{roleId}")
     @PreAuthorize("hasAnyRole('COMPANY', 'ADMIN')")
-    public ResponseEntity<EmployeeDetailResponse> removeRoleFromEmployee(@PathVariable Integer employeeId, @PathVariable Integer roleId) {
+    public ResponseEntity<ApiResponse<EmployeeDetailResponse>> removeRoleFromEmployee(@PathVariable Integer employeeId, @PathVariable Integer roleId) {
         return ResponseEntity.ok(employeeService.removeRoleFromEmployee(employeeId, roleId));
     }
 
     @GetMapping("/period")
     @PreAuthorize("hasAnyRole('EMPLOYEE', 'ADMIN')")
-    public ResponseEntity<List<EvaluationPeriodResponse>> getEmployeePeriods() {
+    public ResponseEntity<ApiResponse<List<EvaluationPeriodResponse>>> getEmployeePeriods() {
         return ResponseEntity.ok(employeeService.getEmployeePeriods());
     }
 
     @GetMapping("/period/{periodId}/tasks")
     @PreAuthorize("hasAnyRole('EMPLOYEE', 'ADMIN')")
-    public ResponseEntity<List<EvaluationTaskResponse>> getEvaluationTasksForPeriod(@PathVariable Integer periodId) {
+    public ResponseEntity<ApiResponse<List<EvaluationTaskResponse>>> getEvaluationTasksForPeriod(@PathVariable Integer periodId) {
         return ResponseEntity.ok(employeeService.getEvaluationTasksForPeriod(periodId));
     }
 
     @GetMapping("/evaluation/{evaluationId}")
     @PreAuthorize("hasAnyRole('EMPLOYEE', 'ADMIN')")
-    public ResponseEntity<EvaluationDetailResponse> getEvaluationDetails(@PathVariable Integer evaluationId) {
-        EvaluationDetailResponse response = employeeService.startOrGetEvaluation(evaluationId);
-        return ResponseEntity.ok(response);
+    public ResponseEntity<ApiResponse<EvaluationDetailResponse>> getEvaluationDetails(@PathVariable Integer evaluationId) {
+        return ResponseEntity.ok(employeeService.startOrGetEvaluation(evaluationId));
     }
 
     @PutMapping("/evaluation/{evaluationId}/answers")
     @PreAuthorize("hasAnyRole('EMPLOYEE', 'ADMIN')")
-    public ResponseEntity<EvaluationDetailResponse> submitAnswers(@PathVariable Integer evaluationId, @RequestBody SubmitAnswersRequest request) {
-        EvaluationDetailResponse response = employeeService.submitAnswers(evaluationId, request);
-        return ResponseEntity.ok(response);
+    public ResponseEntity<ApiResponse<EvaluationDetailResponse>> submitAnswers(@PathVariable Integer evaluationId, @RequestBody SubmitAnswersRequest request) {
+        return ResponseEntity.ok(employeeService.submitAnswers(evaluationId, request));
     }
 }

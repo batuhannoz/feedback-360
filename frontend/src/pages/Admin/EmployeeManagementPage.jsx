@@ -59,6 +59,7 @@ const EmployeeManagementPage = () => {
 
     const handleUpdateEmployee = async () => {
         try {
+            console.log(formData);
             const employeeRequest = new EmployeeRequest(formData.firstName, formData.lastName, formData.email, formData.isAdmin);
             await EmployeeService.updateEmployee(selectedEmployee.id, employeeRequest);
             fetchEmployees();
@@ -115,8 +116,7 @@ const EmployeeManagementPage = () => {
         if (employee) {
             setIsEditMode(true);
             setSelectedEmployee(employee);
-            const hasAdminRole = employee.roles.some(role => role.name === 'ADMIN');
-            setFormData({ firstName: employee.firstName, lastName: employee.lastName, email: employee.email, isAdmin: hasAdminRole });
+            setFormData({ firstName: employee.firstName, lastName: employee.lastName, email: employee.email, isAdmin: employee.admin });
         } else {
             setIsEditMode(false);
             setSelectedEmployee(null);

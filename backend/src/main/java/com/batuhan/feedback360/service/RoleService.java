@@ -17,6 +17,9 @@ import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import com.batuhan.feedback360.model.response.ApiResponse;
+import com.batuhan.feedback360.util.MessageHandler;
+
 @Service
 @AllArgsConstructor
 public class RoleService {
@@ -25,64 +28,75 @@ public class RoleService {
     private final AuthenticationPrincipalResolver principalResolver;
     private final RoleConverter roleConverter;
     private final EmployeeConverter employeeConverter;
+    private final MessageHandler messageHandler;
+
 
     @Transactional
-    public RoleResponse createRole(RoleRequest request) {
-        Company company = new Company();
-        company.setId(Math.toIntExact(principalResolver.getCompanyId()));
+    public ApiResponse<RoleResponse> createRole(RoleRequest request) {
+        Integer companyId = principalResolver.getCompanyId();
 
-        roleRepository.findByNameAndCompanyId(request.getName(), company.getId())
-            .ifPresent(r -> {
-                throw new IllegalArgumentException("Role with name '" + request.getName() + "' already exists.");
-            });
+        if (roleRepository.findByNameAndCompanyId(request.getName(), companyId).isPresent()) {
+            return ApiResponse.failure(messageHandler.getMessage("error.role.nameExists", request.getName()));
+        }
 
         Role role = Role.builder()
             .name(request.getName())
-            .company(company)
+            .company(new Company(companyId))
             .build();
 
         Role savedRole = roleRepository.save(role);
-        return roleConverter.toRoleResponse(savedRole);
+        return ApiResponse.success(
+            roleConverter.toRoleResponse(savedRole),
+            messageHandler.getMessage("success.role.created", savedRole.getName())
+        );
     }
 
     @Transactional
-    public void deleteRole(Integer roleId) {
-        Company company = new Company();
-        company.setId(Math.toIntExact(principalResolver.getCompanyId()));
+    public ApiResponse<Void> deleteRole(Integer roleId) {
+        Integer companyId = principalResolver.getCompanyId();
+        Role role = roleRepository.findById(roleId).orElse(null);
 
-        Role role = roleRepository.findById(roleId)
-            .orElseThrow(() -> new RuntimeException("Role not found with id: " + roleId));
-
-        if (!role.getCompany().getId().equals(company.getId())) {
-            throw new SecurityException("You do not have permission to delete this role.");
+        if (role == null) {
+            return ApiResponse.failure(messageHandler.getMessage("error.role.notFound", roleId));
         }
-        roleRepository.delete(role);
-    }
-
-    @Transactional
-    public List<RoleResponse> getAllRoles() {
-        Integer companyId = Math.toIntExact(principalResolver.getCompanyId());
-        List<Role> roles = roleRepository.findRolesByCompanyId(companyId);
-        return roles.stream()
-            .map(roleConverter::toRoleResponse)
-            .collect(Collectors.toList());
-    }
-
-    @Transactional
-    public List<EmployeeDetailResponse> getEmployeeForRoleId(Integer roleId) {
-        Integer companyId = Math.toIntExact(principalResolver.getCompanyId());
-
-        Role role = roleRepository.findById(roleId)
-            .orElseThrow(() -> new RuntimeException("Role not found with id: " + roleId));
 
         if (!role.getCompany().getId().equals(companyId)) {
-            throw new SecurityException("You do not have permission to access this role.");
+            return ApiResponse.failure(messageHandler.getMessage("error.role.actionPermission"));
+        }
+
+        // TODO check before deletion
+
+        roleRepository.delete(role);
+        return ApiResponse.success(null, messageHandler.getMessage("success.role.deleted", roleId));
+    }
+
+    @Transactional
+    public ApiResponse<List<RoleResponse>> getAllRoles() {
+        Integer companyId = principalResolver.getCompanyId();
+        List<Role> roles = roleRepository.findRolesByCompanyId(companyId);
+        List<RoleResponse> responseData = roles.stream()
+            .map(roleConverter::toRoleResponse)
+            .collect(Collectors.toList());
+        return ApiResponse.success(responseData, messageHandler.getMessage("success.roles.retrieved"));
+    }
+
+    @Transactional
+    public ApiResponse<List<EmployeeDetailResponse>> getEmployeeForRoleId(Integer roleId) {
+        Integer companyId = principalResolver.getCompanyId();
+        Role role = roleRepository.findById(roleId).orElse(null);
+
+        if (role == null) {
+            return ApiResponse.failure(messageHandler.getMessage("error.role.notFound", roleId));
+        }
+
+        if (!role.getCompany().getId().equals(companyId)) {
+            return ApiResponse.failure(messageHandler.getMessage("error.role.accessPermission"));
         }
 
         Set<Employee> employees = role.getEmployees();
-
-        return employees.stream()
+        List<EmployeeDetailResponse> responseData = employees.stream()
             .map(employeeConverter::toEmployeeDetailResponse)
             .collect(Collectors.toList());
+        return ApiResponse.success(responseData, messageHandler.getMessage("success.role.employeesRetrieved", role.getName()));
     }
 }

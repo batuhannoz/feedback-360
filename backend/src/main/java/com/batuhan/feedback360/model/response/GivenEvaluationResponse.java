@@ -10,6 +10,7 @@ import lombok.Data;
 public class GivenEvaluationResponse {
     private Integer evaluationId;
     private EmployeeSimpleResponse evaluated;
+    private EmployeeSimpleResponse evaluator;
     private EvaluationStatus status;
     private LocalDateTime submissionDate;
 }

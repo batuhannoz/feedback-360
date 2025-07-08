@@ -3,6 +3,7 @@ package com.batuhan.feedback360.controller;
 import com.batuhan.feedback360.model.request.EvaluationTemplateRequest;
 import com.batuhan.feedback360.model.request.QuestionRequest;
 import com.batuhan.feedback360.model.request.SetTemplateVisibilityRequest;
+import com.batuhan.feedback360.model.response.ApiResponse;
 import com.batuhan.feedback360.model.response.EvaluationTemplateResponse;
 import com.batuhan.feedback360.service.EvaluationTemplateService;
 import java.util.List;
@@ -28,30 +29,26 @@ public class EvaluationTemplateController {
 
     @GetMapping
     @PreAuthorize("hasAnyRole('COMPANY', 'ADMIN')")
-    public ResponseEntity<List<EvaluationTemplateResponse>> listTemplates() {
-        List<EvaluationTemplateResponse> templates = templateService.listTemplates();
-        return ResponseEntity.ok(templates);
+    public ResponseEntity<ApiResponse<List<EvaluationTemplateResponse>>> listTemplates() {
+        return ResponseEntity.ok(templateService.listTemplates());
     }
 
     @PostMapping
     @PreAuthorize("hasAnyRole('COMPANY', 'ADMIN')")
-    public ResponseEntity<EvaluationTemplateResponse> createTemplate(@RequestBody EvaluationTemplateRequest request) {
-        EvaluationTemplateResponse createdTemplate = templateService.createTemplate(request);
-        return new ResponseEntity<>(createdTemplate, HttpStatus.CREATED);
+    public ResponseEntity<ApiResponse<EvaluationTemplateResponse>> createTemplate(@RequestBody EvaluationTemplateRequest request) {
+        return new ResponseEntity<>(templateService.createTemplate(request), HttpStatus.CREATED);
     }
 
     @PutMapping("/{templateId}")
     @PreAuthorize("hasAnyRole('COMPANY', 'ADMIN')")
-    public ResponseEntity<EvaluationTemplateResponse> updateTemplate(@PathVariable Integer templateId, @RequestBody EvaluationTemplateRequest request) {
-        EvaluationTemplateResponse updatedTemplate = templateService.updateTemplate(templateId, request);
-        return ResponseEntity.ok(updatedTemplate);
+    public ResponseEntity<ApiResponse<EvaluationTemplateResponse>> updateTemplate(@PathVariable Integer templateId, @RequestBody EvaluationTemplateRequest request) {
+        return ResponseEntity.ok(templateService.updateTemplate(templateId, request));
     }
 
     @PostMapping("/{templateId}/question")
     @PreAuthorize("hasAnyRole('COMPANY', 'ADMIN')")
-    public ResponseEntity<EvaluationTemplateResponse> addQuestionToTemplate(@PathVariable Integer templateId, @RequestBody QuestionRequest request) {
-        EvaluationTemplateResponse updatedTemplate = templateService.addQuestion(templateId, request);
-        return ResponseEntity.ok(updatedTemplate);
+    public ResponseEntity<ApiResponse<EvaluationTemplateResponse>> addQuestionToTemplate(@PathVariable Integer templateId, @RequestBody QuestionRequest request) {
+        return ResponseEntity.ok(templateService.addQuestion(templateId, request));
     }
 
     @DeleteMapping("/{templateId}/question/{questionId}")
@@ -63,15 +60,13 @@ public class EvaluationTemplateController {
 
     @PostMapping("/{templateId}/visibility")
     @PreAuthorize("hasAnyRole('COMPANY', 'ADMIN')")
-    public ResponseEntity<?> setTemplateVisibility(@PathVariable Integer templateId, @RequestBody List<SetTemplateVisibilityRequest> request) {
-        templateService.setVisibility(templateId, request);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<ApiResponse<Void>> setTemplateVisibility(@PathVariable Integer templateId, @RequestBody List<SetTemplateVisibilityRequest> request) {
+        return ResponseEntity.ok(templateService.setVisibility(templateId, request));
     }
 
     @DeleteMapping("/{templateId}")
     @PreAuthorize("hasAnyRole('COMPANY', 'ADMIN')")
-    public ResponseEntity<Void> deleteTemplate(@PathVariable Integer templateId) {
-        templateService.deleteTemplate(templateId);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<ApiResponse<Void>> deleteTemplate(@PathVariable Integer templateId) {
+        return ResponseEntity.ok(templateService.deleteTemplate(templateId));
     }
 }
