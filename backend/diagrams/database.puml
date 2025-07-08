@@ -1,0 +1,131 @@
+@startuml
+!theme materia-outline
+skinparam linetype ortho
+
+title 360 Derece Performans Değerlendirme Sistemi Veritabanı Diyagramı
+
+' Entities (Tablolar)
+
+entity "Firma" as Company {
+  + firma_id (PK)
+  --
+  firma_adi
+  kayit_tarihi
+}
+
+entity "Calisan" as Employee {
+  + calisan_id (PK)
+  --
+  # firma_id (FK)
+  email (UK)
+  ad_soyad
+  parola_hash
+  is_yonetici : boolean
+  davet_tokeni
+  davet_gecerlilik_tarihi
+  kayit_tarihi
+}
+
+entity "Rol" as Role {
+  + rol_id (PK)
+  --
+  # firma_id (FK)
+  rol_adi (UK per Firma)
+}
+
+entity "CalisanRolleri" as EmployeeRoles {
+  # calisan_id (FK)
+  # rol_id (FK)
+  --
+  (PK: calisan_id, rol_id)
+}
+
+entity "DegerlendirmeDonemi" as EvaluationPeriod {
+  + donem_id (PK)
+  --
+  # firma_id (FK)
+  donem_adi
+  baslangic_tarihi
+  bitis_tarihi
+  olusturan_calisan_id (FK)
+}
+
+entity "DegerlendirmeSablonu" as EvaluationTemplate {
+  + sablon_id (PK)
+  --
+  # firma_id (FK)
+  sablon_adi
+  aciklama
+  # hedef_rol_id (FK to Rol)
+}
+
+entity "Soru" as Question {
+  + soru_id (PK)
+  --
+  # firma_id (FK)
+  soru_metni
+  soru_tipi ('metin', '1-5_arasi', 'evet_hayir')
+}
+
+entity "SablonSorulari" as TemplateQuestions {
+  # sablon_id (FK)
+  # soru_id (FK)
+  --
+  (PK: sablon_id, soru_id)
+}
+
+entity "SablonGorunurlugu" as TemplateVisibility {
+  # sablon_id (FK)
+  # degerlendiren_rol_id (FK to Rol)
+  --
+  (PK: sablon_id, degerlendiren_rol_id)
+}
+
+entity "Degerlendirme" as Evaluation {
+  + degerlendirme_id (PK)
+  --
+  # donem_id (FK)
+  # degerlendiren_id (FK to Calisan)
+  # degerlendirilen_id (FK to Calisan)
+  teslim_tarihi
+  durum ('baslamadi', 'devam_ediyor', 'tamamlandi')
+}
+
+entity "Cevap" as Answer {
+  + cevap_id (PK)
+  --
+  # degerlendirme_id (FK)
+  # soru_id (FK)
+  cevap_degeri
+}
+
+
+' Relationships (İlişkiler)
+
+Company ||--o{ Employee
+Company ||--o{ Role
+Company ||--o{ EvaluationPeriod
+Company ||--o{ EvaluationTemplate
+Company ||--o{ Question
+
+Employee }o--|| EmployeeRoles
+Role }o--|| EmployeeRoles
+
+Employee "1" --o{ "olusturan" EvaluationPeriod
+Employee "1" --o{ "degerlendiren" Evaluation
+Employee "1" --o{ "degerlendirilen" Evaluation
+
+EvaluationPeriod ||--o{ Evaluation
+
+EvaluationTemplate ||--o{ TemplateQuestions
+Question ||--o{ TemplateQuestions
+
+' Rol bazlı görünürlük ilişkileri
+EvaluationTemplate }o--|| TemplateVisibility
+Role "degerlendiren" o--|| TemplateVisibility
+Role "degerlendirilen" ||--|{ EvaluationTemplate
+
+Evaluation ||--o{ Answer
+Question   ||--o{ Answer
+
+@enduml
