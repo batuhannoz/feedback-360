@@ -1,0 +1,110 @@
+@startuml
+
+!theme plain
+top to bottom direction
+skinparam linetype ortho
+
+class answer {
+   answer: varchar(255)
+   created_at: datetime(6)
+   evaluation_id: int
+   question_id: int
+   id: int
+}
+class company {
+   created_at: datetime(6)
+   email: varchar(255)
+   name: varchar(255)
+   password_hash: varchar(255)
+   id: int
+}
+class employee {
+   created_at: datetime(6)
+   email: varchar(255)
+   first_name: varchar(255)
+   invitation_token: varchar(255)
+   invitation_validity_date: datetime(6)
+   is_admin: bit(1)
+   last_name: varchar(255)
+   password_hash: varchar(255)
+   company_id: int
+   is_active: bit(1)
+   id: int
+}
+class employee_role {
+   employee_id: int
+   role_id: int
+}
+class evaluation {
+   created_at: datetime(6)
+   delivery_date: datetime(6)
+   status: enum('completed', 'in_progress', 'not_started')
+   evaluated_id: int
+   evaluator_id: int
+   evaluation_period_id: int
+   id: int
+}
+class evaluation_period {
+   created_at: datetime(6)
+   end_date: date
+   name: varchar(255)
+   start_date: date
+   company_id: int
+   id: int
+}
+class evaluation_tamplate_visibility {
+   template_id: int
+   evaluator_role_id: int
+}
+class evaluation_template {
+   created_at: datetime(6)
+   description: varchar(255)
+   name: varchar(255)
+   company_id: int
+   target_rol_id: int
+   id: int
+}
+class evaluation_template_question {
+   evaluation_template_id: int
+   question_id: int
+}
+class period_template {
+   period_id: int
+   template_id: int
+}
+class question {
+   created_at: datetime(6)
+   test: varchar(255)
+   type: enum('scale_1_to_5', 'text', 'yes_no')
+   company_id: int
+   evaluation_templates_id: int
+   id: int
+}
+class role {
+   created_at: datetime(6)
+   name: varchar(255)
+   company_id: int
+   id: int
+}
+
+answer                          -[#595959,plain]-^  evaluation                     : "evaluation_id:id"
+answer                          -[#595959,plain]-^  question                       : "question_id:id"
+employee                        -[#595959,plain]-^  company                        : "company_id:id"
+employee_role                   -[#595959,plain]-^  employee                       : "employee_id:id"
+employee_role                   -[#595959,plain]-^  role                           : "role_id:id"
+evaluation                      -[#595959,plain]-^  employee                       : "evaluator_id:id"
+evaluation                      -[#595959,plain]-^  employee                       : "evaluated_id:id"
+evaluation                      -[#595959,plain]-^  evaluation_period              : "evaluation_period_id:id"
+evaluation_period               -[#595959,plain]-^  company                        : "company_id:id"
+evaluation_tamplate_visibility  -[#595959,plain]-^  evaluation_template            : "template_id:id"
+evaluation_tamplate_visibility  -[#595959,plain]-^  role                           : "evaluator_role_id:id"
+evaluation_template             -[#595959,plain]-^  company                        : "company_id:id"
+evaluation_template             -[#595959,plain]-^  role                           : "target_rol_id:id"
+evaluation_template_question    -[#595959,plain]-^  evaluation_template            : "evaluation_template_id:id"
+evaluation_template_question    -[#595959,plain]-^  question                       : "question_id:id"
+period_template                 -[#595959,plain]-^  evaluation_period              : "period_id:id"
+period_template                 -[#595959,plain]-^  evaluation_template            : "template_id:id"
+question                        -[#595959,plain]-^  company                        : "company_id:id"
+question                        -[#595959,plain]-^  evaluation_template            : "evaluation_templates_id:id"
+role                            -[#595959,plain]-^  company                        : "company_id:id"
+@enduml
