@@ -1,6 +1,7 @@
 package com.batuhan.feedback360.controller;
 
 import com.batuhan.feedback360.model.request.EvaluationPeriodRequest;
+import com.batuhan.feedback360.model.response.ApiResponse;
 import com.batuhan.feedback360.model.response.EvaluationPeriodResponse;
 import com.batuhan.feedback360.service.EvaluationPeriodService;
 import java.util.List;
@@ -26,36 +27,31 @@ public class EvaluationPeriodController {
 
     @PostMapping
     @PreAuthorize("hasAnyRole('COMPANY', 'ADMIN')")
-    public ResponseEntity<EvaluationPeriodResponse> createEvaluationPeriod(@RequestBody EvaluationPeriodRequest request) {
-        EvaluationPeriodResponse createdPeriod = evaluationPeriodService.createPeriod(request);
-        return new ResponseEntity<>(createdPeriod, HttpStatus.CREATED);
+    public ResponseEntity<ApiResponse<EvaluationPeriodResponse>> createEvaluationPeriod(@RequestBody EvaluationPeriodRequest request) {
+        return new ResponseEntity<>(evaluationPeriodService.createPeriod(request), HttpStatus.CREATED);
     }
 
     @GetMapping
     @PreAuthorize("hasAnyRole('COMPANY', 'ADMIN')")
-    public ResponseEntity<List<EvaluationPeriodResponse>> getAllPeriods() {
-        List<EvaluationPeriodResponse> periods = evaluationPeriodService.findAllPeriodsByCompany();
-        return ResponseEntity.ok(periods);
+    public ResponseEntity<ApiResponse<List<EvaluationPeriodResponse>>> getAllPeriods() {
+        return ResponseEntity.ok(evaluationPeriodService.findAllPeriodsByCompany());
     }
 
     @GetMapping("/{periodId}")
     @PreAuthorize("hasAnyRole('COMPANY', 'ADMIN')")
-    public ResponseEntity<EvaluationPeriodResponse> getPeriodById(@PathVariable Integer periodId) {
-        EvaluationPeriodResponse period = evaluationPeriodService.findPeriodById(periodId);
-        return ResponseEntity.ok(period);
+    public ResponseEntity<ApiResponse<EvaluationPeriodResponse>> getPeriodById(@PathVariable Integer periodId) {
+        return ResponseEntity.ok(evaluationPeriodService.findPeriodById(periodId));
     }
 
     @PutMapping("/{periodId}")
     @PreAuthorize("hasAnyRole('COMPANY', 'ADMIN')")
-    public ResponseEntity<EvaluationPeriodResponse> updatePeriod(@PathVariable Integer periodId, @RequestBody EvaluationPeriodRequest request) {
-        EvaluationPeriodResponse updatedPeriod = evaluationPeriodService.updatePeriod(periodId, request);
-        return ResponseEntity.ok(updatedPeriod);
+    public ResponseEntity<ApiResponse<EvaluationPeriodResponse>> updatePeriod(@PathVariable Integer periodId, @RequestBody EvaluationPeriodRequest request) {
+        return ResponseEntity.ok(evaluationPeriodService.updatePeriod(periodId, request));
     }
 
     @DeleteMapping("/{periodId}")
     @PreAuthorize("hasAnyRole('COMPANY', 'ADMIN')")
-    public ResponseEntity<Void> deletePeriod(@PathVariable Integer periodId) {
-        evaluationPeriodService.deletePeriod(periodId);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<ApiResponse<Void>> deletePeriod(@PathVariable Integer periodId) {
+        return ResponseEntity.ok(evaluationPeriodService.deletePeriod(periodId));
     }
 }

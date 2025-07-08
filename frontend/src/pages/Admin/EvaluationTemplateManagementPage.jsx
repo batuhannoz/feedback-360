@@ -145,7 +145,7 @@ const EvaluationTemplateManagementPage = () => {
         const title = modalMode === 'create' ? 'Create Evaluation Template' : 'Edit Evaluation Template';
 
         return (
-            <Modal isOpen={isModalOpen} onClose={closeModal} title={title}>
+            <Modal isOpen={isModalOpen} onClose={closeModal} title={title} maxWidth="max-w-4xl">
                 {/* Template Details Form */}
                 <form onSubmit={handleFormSubmit} className="mb-6">
                     <h3 className="text-lg font-semibold mb-2">Template Details</h3>
@@ -174,26 +174,46 @@ const EvaluationTemplateManagementPage = () => {
                 {modalMode === 'edit' && (
                     <>
                         {/* Question Management */}
-                        <div className="mb-6">
+                        <div className="space-y-8">
                             <h3 className="text-lg font-semibold mb-2">Questions</h3>
-                            <ul className="mb-2 list-disc list-inside">
+                            <ul className="mb-4 border rounded-md divide-y divide-gray-200">
                                 {currentTemplate.questions.map(q => (
-                                    <li key={q.id} className="flex justify-between items-center">
-                                        <span>{q.question}</span>
-                                        <button onClick={() => handleRemoveQuestion(q.id)} className="text-red-500 hover:text-red-700">Remove</button>
+                                    <li key={q.id} className="flex justify-between items-center p-3">
+                                        <span className="flex-1 text-sm text-gray-800 mr-4">{q.question}</span>
+                                        <div className="flex items-center space-x-4">
+                                            <span className="px-2.5 py-1 text-xs font-semibold text-indigo-800 bg-indigo-100 rounded-full">
+                                                {q.type.replace(/_/g, ' ')}
+                                            </span>
+                                            <button onClick={() => handleRemoveQuestion(q.id)} className="text-red-600 hover:text-red-800 text-sm font-medium">Remove</button>
+                                        </div>
                                     </li>
                                 ))}
                             </ul>
-                                                                                    <div className="relative flex w-full">
-                                <input type="text" value={newQuestion} onChange={(e) => setNewQuestion(e.target.value)} placeholder="Add new question" className="flex-1 p-2 border border-r-0 rounded-l-md focus:ring-indigo-500 focus:border-indigo-500 block w-full sm:text-sm border-gray-300" />
-                                <select value={newQuestionType} onChange={(e) => setNewQuestionType(e.target.value)} className="p-2 border-t border-b bg-white border-gray-300 text-sm">
-                                    {Object.values(QuestionType).map(type => (
-                                        <option key={type} value={type}>{type.replace(/_/g, ' ')}</option>
-                                    ))}
-                                </select>
-                                <button onClick={handleAddQuestion} className="px-4 py-2 text-white bg-green-600 rounded-r-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 text-sm">
-                                    Add
-                                </button>
+                                                                                                                <div className="space-y-3">
+                                <textarea
+                                    value={newQuestion}
+                                    onChange={(e) => setNewQuestion(e.target.value)}
+                                    placeholder="Write a new question..."
+                                    className="w-full p-2 border rounded-md focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm border-gray-300"
+                                    rows="3"
+                                />
+                                <div className="flex items-center justify-between">
+                                    <select
+                                        value={newQuestionType}
+                                        onChange={(e) => setNewQuestionType(e.target.value)}
+                                        className="p-2 border bg-white border-gray-300 rounded-md text-sm"
+                                    >
+                                        {Object.values(QuestionType).map(type => (
+                                            <option key={type} value={type}>{type.replace(/_/g, ' ')}</option>
+                                        ))}
+                                    </select>
+                                    <button
+                                        onClick={handleAddQuestion}
+                                        className="px-4 py-2 text-white bg-green-600 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 text-sm font-medium"
+                                    >
+                                        Add Question
+                                    </button>
+                                </div>
                             </div>
                         </div>
 

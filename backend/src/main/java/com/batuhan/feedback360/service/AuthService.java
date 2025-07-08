@@ -3,12 +3,14 @@ package com.batuhan.feedback360.service;
 import com.batuhan.feedback360.model.entitiy.Company;
 import com.batuhan.feedback360.model.entitiy.Employee;
 import com.batuhan.feedback360.model.request.EmployeeSignUpRequest;
+import com.batuhan.feedback360.model.response.ApiResponse;
 import com.batuhan.feedback360.model.response.JwtAuthenticationResponse;
 import com.batuhan.feedback360.model.request.RefreshTokenRequest;
 import com.batuhan.feedback360.model.request.SignInRequest;
 import com.batuhan.feedback360.model.request.SignUpRequest;
 import com.batuhan.feedback360.repository.CompanyRepository;
 import com.batuhan.feedback360.repository.EmployeeRepository;
+import com.batuhan.feedback360.util.MessageHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -27,17 +29,20 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
+    private final MessageHandler messageHandler;
 
-    public Company companySignUp(SignUpRequest request) {
+    public ApiResponse<Company> companySignUp(SignUpRequest request) {
         Company company = Company.builder()
             .name(request.getCompanyName())
             .email(request.getEmail())
             .passwordHash(passwordEncoder.encode(request.getPassword()))
             .build();
-        return companyRepository.save(company);
+        Company savedCompany = companyRepository.save(company);
+
+        return ApiResponse.success(savedCompany, messageHandler.getMessage("auth.company.signup.success"));
     }
 
-    public JwtAuthenticationResponse signIn(SignInRequest request) {
+    public ApiResponse<JwtAuthenticationResponse> signIn(SignInRequest request) {
         final var authentication = authenticationManager.authenticate(
             new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
         );
@@ -45,31 +50,39 @@ public class AuthService {
         String accessToken = jwtService.generateAccessToken(user);
         String refreshToken = jwtService.generateRefreshToken(user);
 
-        return JwtAuthenticationResponse.builder().accessToken(accessToken).refreshToken(refreshToken).build();
+        JwtAuthenticationResponse jwtResponse = JwtAuthenticationResponse.builder()
+            .accessToken(accessToken)
+            .refreshToken(refreshToken)
+            .build();
+
+        return ApiResponse.success(jwtResponse, messageHandler.getMessage("auth.signin.success"));
     }
 
-    public String completeEmployeeInvitation(EmployeeSignUpRequest request) {
+    public ApiResponse<Void> completeEmployeeInvitation(EmployeeSignUpRequest request) {
         Employee employee = employeeRepository.findByInvitationToken(request.getInvitationToken())
-            .orElseThrow(() -> new IllegalArgumentException("Invalid invitation token."));
+            .orElse(null);
 
-        System.out.println(employee);
+        if (employee == null) {
+            return ApiResponse.failure(messageHandler.getMessage("auth.employee.signup.invalidToken"));
+        }
 
         if (employee.getInvitationValidityDate().isBefore(LocalDateTime.now())) {
-            throw new IllegalArgumentException("Invitation token has expired.");
+            return ApiResponse.failure(messageHandler.getMessage("auth.employee.signup.expiredToken"));
         }
 
         employee.setPasswordHash(passwordEncoder.encode(request.getPassword()));
         employee.setInvitationToken(null);
         employee.setInvitationValidityDate(null);
         employeeRepository.save(employee);
-        return "Employee registration completed successfully.";
+
+        return ApiResponse.success(null, messageHandler.getMessage("auth.employee.signup.success"));
     }
 
-    public JwtAuthenticationResponse refreshToken(RefreshTokenRequest request) {
+    public ApiResponse<JwtAuthenticationResponse> refreshToken(RefreshTokenRequest request) {
         final String refreshToken = request.getRefreshToken();
 
         if (!"REFRESH".equals(jwtService.extractType(refreshToken))) {
-            throw new IllegalArgumentException("Invalid token type provided for refresh.");
+            return ApiResponse.failure(messageHandler.getMessage("auth.refresh.invalidType"));
         }
 
         final String userEmail = jwtService.extractUserName(refreshToken);
@@ -77,17 +90,22 @@ public class AuthService {
         UserDetails userDetails = companyRepository.findByEmail(userEmail)
             .map(u -> (UserDetails) u)
             .orElseGet(() -> employeeRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new IllegalArgumentException("User not found for refresh token.")));
+                .orElse(null));
+
+        if (userDetails == null) {
+            return ApiResponse.failure(messageHandler.getMessage("auth.refresh.userNotFound"));
+        }
 
         if (jwtService.isTokenValid(refreshToken, userDetails)) {
             var newAccessToken = jwtService.generateAccessToken(userDetails);
             var newRefreshToken = jwtService.generateRefreshToken(userDetails);
-            return JwtAuthenticationResponse.builder()
+            JwtAuthenticationResponse jwtResponse = JwtAuthenticationResponse.builder()
                 .accessToken(newAccessToken)
                 .refreshToken(newRefreshToken)
                 .build();
+            return ApiResponse.success(jwtResponse, messageHandler.getMessage("auth.refresh.success"));
         }
 
-        throw new IllegalArgumentException("Invalid refresh token.");
+        return ApiResponse.failure(messageHandler.getMessage("auth.refresh.invalidToken"));
     }
 }

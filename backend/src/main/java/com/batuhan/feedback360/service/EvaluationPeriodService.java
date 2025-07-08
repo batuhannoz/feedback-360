@@ -12,14 +12,14 @@ import com.batuhan.feedback360.model.entitiy.Question;
 import com.batuhan.feedback360.model.entitiy.Role;
 import com.batuhan.feedback360.model.enums.EvaluationStatus;
 import com.batuhan.feedback360.model.request.EvaluationPeriodRequest;
+import com.batuhan.feedback360.model.response.ApiResponse;
 import com.batuhan.feedback360.model.response.EvaluationPeriodResponse;
 import com.batuhan.feedback360.repository.CompanyRepository;
 import com.batuhan.feedback360.repository.EmployeeRepository;
 import com.batuhan.feedback360.repository.EvaluationPeriodRepository;
 import com.batuhan.feedback360.repository.EvaluationRepository;
 import com.batuhan.feedback360.repository.EvaluationTemplateRepository;
-import com.batuhan.feedback360.repository.RoleRepository;
-import jakarta.persistence.EntityNotFoundException;
+import com.batuhan.feedback360.util.MessageHandler;
 import jakarta.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -38,20 +38,23 @@ public class EvaluationPeriodService {
     private final EvaluationPeriodConverter evaluationPeriodConverter;
     private final EvaluationTemplateRepository evaluationTemplateRepository;
     private final EmployeeRepository employeeRepository;
-    private final RoleRepository roleRepository;
-    private final EvaluationRepository evaluationRepository;
     private final CompanyRepository companyRepository;
+    private final EvaluationRepository evaluationRepository;
+    private final MessageHandler messageHandler;
+
 
     @Transactional
-    public EvaluationPeriodResponse createPeriod(EvaluationPeriodRequest request) {
+    public ApiResponse<EvaluationPeriodResponse> createPeriod(EvaluationPeriodRequest request) {
         Company company = companyRepository.getReferenceById(principalResolver.getCompanyId());
 
         Set<EvaluationTemplate> templatesForPeriod = new HashSet<>(
             evaluationTemplateRepository.findAllById(request.getTemplateIds())
         );
+
         if (templatesForPeriod.isEmpty()) {
-            throw new IllegalArgumentException("Değerlendirme dönemi en az bir şablon içermelidir.");
+            return ApiResponse.failure(messageHandler.getMessage("error.period.noTemplates"));
         }
+
         EvaluationPeriod evaluationPeriod = EvaluationPeriod.builder()
             .name(request.getName())
             .startDate(request.getStartDate())
@@ -107,49 +110,65 @@ public class EvaluationPeriodService {
         if (!evaluationsToCreate.isEmpty()) {
             evaluationRepository.saveAll(evaluationsToCreate);
         }
-        return evaluationPeriodConverter.toEvaluationPeriodResponse(evaluationPeriod);
+        return ApiResponse.success(
+            evaluationPeriodConverter.toEvaluationPeriodResponse(evaluationPeriod),
+            messageHandler.getMessage("success.period.created", evaluationPeriod.getName())
+        );
     }
 
-    public List<EvaluationPeriodResponse> findAllPeriodsByCompany() {
+    public ApiResponse<List<EvaluationPeriodResponse>> findAllPeriodsByCompany() {
         Integer companyId = principalResolver.getCompanyId();
         List<EvaluationPeriod> periods = evaluationPeriodRepository.findByCompanyId(companyId);
-        return periods.stream()
+        List<EvaluationPeriodResponse> responseData = periods.stream()
             .map(evaluationPeriodConverter::toEvaluationPeriodResponse)
             .collect(Collectors.toList());
+        return ApiResponse.success(responseData, messageHandler.getMessage("success.periods.retrieved"));
     }
 
-    public EvaluationPeriodResponse findPeriodById(Integer periodId) {
+    public ApiResponse<EvaluationPeriodResponse> findPeriodById(Integer periodId) {
         Integer companyId = principalResolver.getCompanyId();
-        EvaluationPeriod period = evaluationPeriodRepository.findByIdAndCompanyId(periodId, companyId)
-            .orElseThrow(() -> new EntityNotFoundException("Evaluation period not found with id: " + periodId));
-        return evaluationPeriodConverter.toEvaluationPeriodResponse(period);
+        return evaluationPeriodRepository.findByIdAndCompanyId(periodId, companyId)
+            .map(period -> ApiResponse.success(
+                evaluationPeriodConverter.toEvaluationPeriodResponse(period),
+                messageHandler.getMessage("success.period.retrieved", periodId)
+            ))
+            .orElseGet(() -> ApiResponse.failure(
+                messageHandler.getMessage("error.period.notFound", periodId)
+            ));
     }
 
     @Transactional
-    public EvaluationPeriodResponse updatePeriod(Integer periodId, EvaluationPeriodRequest evaluationPeriodRequest) {
+    public ApiResponse<EvaluationPeriodResponse> updatePeriod(Integer periodId, EvaluationPeriodRequest request) {
         Integer companyId = principalResolver.getCompanyId();
 
-        EvaluationPeriod existingPeriod = evaluationPeriodRepository.findByIdAndCompanyId(periodId, companyId)
-            .orElseThrow(() -> new EntityNotFoundException("Evaluation period not found with id: " + periodId));
+        EvaluationPeriod existingPeriod = evaluationPeriodRepository.findByIdAndCompanyId(periodId, companyId).orElse(null);
 
-        existingPeriod.setName(evaluationPeriodRequest.getName());
-        existingPeriod.setStartDate(evaluationPeriodRequest.getStartDate());
-        existingPeriod.setEndDate(evaluationPeriodRequest.getEndDate());
+        if (existingPeriod == null) {
+            return ApiResponse.failure(messageHandler.getMessage("error.period.notFound", periodId));
+        }
 
-        evaluationPeriodRepository.save(existingPeriod);
-        return evaluationPeriodConverter.toEvaluationPeriodResponse(existingPeriod);
+        existingPeriod.setName(request.getName());
+        existingPeriod.setStartDate(request.getStartDate());
+        existingPeriod.setEndDate(request.getEndDate());
+
+        EvaluationPeriod updatedPeriod = evaluationPeriodRepository.save(existingPeriod);
+        return ApiResponse.success(
+            evaluationPeriodConverter.toEvaluationPeriodResponse(updatedPeriod),
+            messageHandler.getMessage("success.period.updated", periodId)
+        );
     }
 
     @Transactional
-    public void deletePeriod(Integer periodId) {
+    public ApiResponse<Void> deletePeriod(Integer periodId) {
         Integer companyId = principalResolver.getCompanyId();
 
         if (!evaluationPeriodRepository.existsByIdAndCompanyId(periodId, companyId)) {
-            throw new EntityNotFoundException("Evaluation period not found with id: " + periodId);
+            return ApiResponse.failure(messageHandler.getMessage("error.period.notFound", periodId));
         }
 
-        // TODO: check before deleting it
+        // TODO check before deletion
 
         evaluationPeriodRepository.deleteById(periodId);
+        return ApiResponse.success(null, messageHandler.getMessage("success.period.deleted", periodId));
     }
 }

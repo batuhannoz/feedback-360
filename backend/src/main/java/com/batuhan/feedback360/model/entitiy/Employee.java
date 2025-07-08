@@ -64,7 +64,7 @@ public class Employee implements UserDetails {
     private Boolean isAdmin;
 
     @Column(name = "is_active")
-    private Boolean isActive;
+    private Boolean isActive = true;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "company_id", nullable = false)

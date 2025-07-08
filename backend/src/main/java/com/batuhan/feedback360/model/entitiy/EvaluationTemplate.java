@@ -1,5 +1,6 @@
 package com.batuhan.feedback360.model.entitiy;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -48,7 +49,7 @@ public class EvaluationTemplate {
     @JoinColumn(name = "target_rol_id", nullable = false)
     private Role targetRole;
 
-    @OneToMany(fetch = FetchType.LAZY)
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinTable(
         name = "evaluation_template_question",
         joinColumns = @JoinColumn(name = "evaluation_template_id"),

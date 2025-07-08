@@ -10,7 +10,8 @@ import lombok.Data;
 public class EvaluationDetailResponse {
     private Integer evaluationId;
     private EvaluationStatus status;
-    private EmployeeSimpleResponse evaluatedEmployee;
+    private EmployeeSimpleResponse evaluator;
+    private EmployeeSimpleResponse evaluated;
     private List<AnswerDetailResponse> answers;
 }
 

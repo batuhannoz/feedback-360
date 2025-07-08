@@ -6,7 +6,7 @@ const EmployeeInvitePage = () => {
     const { token } = useParams();
     const [formData, setFormData] = useState({
         password: '',
-        parolaTekrar: ''
+        passwordAgain: ''
     });
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
@@ -53,11 +53,11 @@ const EmployeeInvitePage = () => {
                     <div className="space-y-4">
                         <div>
                             <label htmlFor="parola" className="sr-only">Yeni Parola</label>
-                            <input id="parola" name="parola" type="password" value={formData.password} onChange={handleChange} required minLength="6" className="relative block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:z-10 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm" placeholder="Yeni Parola"/>
+                            <input id="password" name="password" type="password" value={formData.password} onChange={handleChange} required minLength="6" className="relative block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:z-10 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm" placeholder="Yeni Parola"/>
                         </div>
                         <div>
                             <label htmlFor="parolaTekrar" className="sr-only">Parola Tekrar</label>
-                            <input id="parolaTekrar" name="parolaTekrar" type="password" value={formData.parolaTekrar} onChange={handleChange} required className="relative block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:z-10 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm" placeholder="Parola Tekrar"/>
+                            <input id="passwordAgain" name="passwordAgain" type="password" value={formData.passwordAgain} onChange={handleChange} required className="relative block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:z-10 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm" placeholder="Parola Tekrar"/>
                         </div>
                     </div>
 

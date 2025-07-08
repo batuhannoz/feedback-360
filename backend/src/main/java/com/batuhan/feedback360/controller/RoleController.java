@@ -1,6 +1,7 @@
 package com.batuhan.feedback360.controller;
 
 import com.batuhan.feedback360.model.request.RoleRequest;
+import com.batuhan.feedback360.model.response.ApiResponse;
 import com.batuhan.feedback360.model.response.EmployeeDetailResponse;
 import com.batuhan.feedback360.model.response.RoleResponse;
 import com.batuhan.feedback360.service.RoleService;
@@ -27,27 +28,25 @@ public class RoleController {
 
     @PostMapping
     @PreAuthorize("hasAnyRole('COMPANY', 'ADMIN')")
-    public ResponseEntity<RoleResponse> createRole(@RequestBody RoleRequest request) {
+    public ResponseEntity<ApiResponse<RoleResponse>> createRole(@RequestBody RoleRequest request) {
         return new ResponseEntity<>(roleService.createRole(request), HttpStatus.CREATED);
     }
 
     @GetMapping("/{roleId}/employee")
     @PreAuthorize("hasAnyRole('COMPANY', 'ADMIN')")
-    public ResponseEntity<List<EmployeeDetailResponse>> getEmployeeForRole(@PathVariable Integer roleId) {
-        List<EmployeeDetailResponse> customers = roleService.getEmployeeForRoleId(roleId);
-        return ResponseEntity.ok(customers);
+    public ResponseEntity<ApiResponse<List<EmployeeDetailResponse>>> getEmployeeForRole(@PathVariable Integer roleId) {
+        return ResponseEntity.ok(roleService.getEmployeeForRoleId(roleId));
     }
 
     @GetMapping
     @PreAuthorize("hasAnyRole('COMPANY', 'ADMIN')")
-    public ResponseEntity<List<RoleResponse>> listRoles() {
+    public ResponseEntity<ApiResponse<List<RoleResponse>>> listRoles() {
         return ResponseEntity.ok(roleService.getAllRoles());
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAnyRole('COMPANY', 'ADMIN')")
-    public ResponseEntity<Void> deleteRole(@PathVariable Integer id) {
-        roleService.deleteRole(id);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<ApiResponse<Void>> deleteRole(@PathVariable Integer id) {
+        return ResponseEntity.ok(roleService.deleteRole(id));
     }
 }

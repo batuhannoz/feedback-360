@@ -4,6 +4,7 @@ import com.batuhan.feedback360.model.request.EmployeeSignUpRequest;
 import com.batuhan.feedback360.model.request.RefreshTokenRequest;
 import com.batuhan.feedback360.model.request.SignInRequest;
 import com.batuhan.feedback360.model.request.SignUpRequest;
+import com.batuhan.feedback360.model.response.ApiResponse;
 import com.batuhan.feedback360.model.response.JwtAuthenticationResponse;
 import com.batuhan.feedback360.service.AuthService;
 import lombok.RequiredArgsConstructor;
@@ -26,17 +27,17 @@ public class AuthController {
     }
 
     @PostMapping("/sign-in")
-    public ResponseEntity<JwtAuthenticationResponse> companySignIn(@RequestBody SignInRequest request) {
+    public ResponseEntity<ApiResponse<JwtAuthenticationResponse>> companySignIn(@RequestBody SignInRequest request) {
         return ResponseEntity.ok(authService.signIn(request));
     }
 
     @PostMapping("/employee/invitation")
-    public ResponseEntity<?> completeEmployeeInvitation(@RequestBody EmployeeSignUpRequest request) {
+    public ResponseEntity<ApiResponse<?>> completeEmployeeInvitation(@RequestBody EmployeeSignUpRequest request) {
         return ResponseEntity.ok(authService.completeEmployeeInvitation(request));
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<JwtAuthenticationResponse> refreshToken(@RequestBody RefreshTokenRequest request) {
+    public ResponseEntity<ApiResponse<JwtAuthenticationResponse>> refreshToken(@RequestBody RefreshTokenRequest request) {
         return ResponseEntity.ok(authService.refreshToken(request));
     }
 }

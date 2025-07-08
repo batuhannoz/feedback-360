@@ -9,11 +9,13 @@ import com.batuhan.feedback360.model.entitiy.Role;
 import com.batuhan.feedback360.model.request.EvaluationTemplateRequest;
 import com.batuhan.feedback360.model.request.QuestionRequest;
 import com.batuhan.feedback360.model.request.SetTemplateVisibilityRequest;
+import com.batuhan.feedback360.model.response.ApiResponse;
 import com.batuhan.feedback360.model.response.EvaluationTemplateResponse;
 import com.batuhan.feedback360.repository.CompanyRepository;
 import com.batuhan.feedback360.repository.EvaluationTemplateRepository;
 import com.batuhan.feedback360.repository.QuestionRepository;
 import com.batuhan.feedback360.repository.RoleRepository;
+import com.batuhan.feedback360.util.MessageHandler;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import java.util.List;
@@ -32,23 +34,25 @@ public class EvaluationTemplateService {
     private final AuthenticationPrincipalResolver principalResolver;
     private final EvaluationTemplateConverter templateConverter;
     private final CompanyRepository companyRepository;
+    private final MessageHandler messageHandler;
 
-    public List<EvaluationTemplateResponse> listTemplates() {
+    public ApiResponse<List<EvaluationTemplateResponse>> listTemplates() {
         Company company = companyRepository.getReferenceById(principalResolver.getCompanyId());
-
         List<EvaluationTemplate> templates = templateRepository.findAllByCompany(company);
-
-        return templates.stream()
+        List<EvaluationTemplateResponse> responseData = templates.stream()
             .map(templateConverter::toTemplateResponse)
             .collect(Collectors.toList());
+        return ApiResponse.success(responseData, messageHandler.getMessage("success.templates.retrieved"));
     }
 
     @Transactional
-    public EvaluationTemplateResponse createTemplate(EvaluationTemplateRequest request) {
+    public ApiResponse<EvaluationTemplateResponse> createTemplate(EvaluationTemplateRequest request) {
         Integer companyId = principalResolver.getCompanyId();
 
-        Role targetRole = roleRepository.findByIdAndCompanyId(request.getTargetRoleId(), companyId)
-            .orElseThrow(() -> new EntityNotFoundException("Target role not found with id: " + request.getTargetRoleId()));
+        Role targetRole = roleRepository.findByIdAndCompanyId(request.getTargetRoleId(), companyId).orElse(null);
+        if (targetRole == null) {
+            return ApiResponse.failure(messageHandler.getMessage("error.role.notFound", request.getTargetRoleId()));
+        }
 
         EvaluationTemplate template = EvaluationTemplate.builder()
             .name(request.getName())
@@ -57,53 +61,64 @@ public class EvaluationTemplateService {
             .company(new Company(companyId))
             .build();
 
-        templateRepository.save(template);
-
-        return templateConverter.toTemplateResponse(template);
+        EvaluationTemplate savedTemplate = templateRepository.save(template);
+        return ApiResponse.success(
+            templateConverter.toTemplateResponse(savedTemplate),
+            messageHandler.getMessage("success.template.created", savedTemplate.getName())
+        );
     }
 
-    public EvaluationTemplateResponse addQuestion(Integer templateId, QuestionRequest request) {
+    @Transactional
+    public ApiResponse<EvaluationTemplateResponse> addQuestion(Integer templateId, QuestionRequest request) {
         Integer companyId = principalResolver.getCompanyId();
 
-        EvaluationTemplate template = templateRepository.findByIdAndCompanyId(templateId, companyId)
-            .orElseThrow(() -> new EntityNotFoundException("Template not found with id: " + templateId));
+        EvaluationTemplate template = templateRepository.findByIdAndCompanyId(templateId, companyId).orElse(null);
+        if (template == null) {
+            return ApiResponse.failure(messageHandler.getMessage("error.template.notFound", templateId));
+        }
 
         Question question = Question.builder()
             .question(request.getQuestion())
             .type(request.getType())
-            .evaluationTemplates(template)
             .company(new Company(companyId))
             .build();
 
-        question = questionRepository.save(question);
-
+        // The association should be managed by the owning side (template)
         template.getQuestions().add(question);
-        templateRepository.save(template);
+        EvaluationTemplate updatedTemplate = templateRepository.save(template);
 
-        return templateConverter.toTemplateResponse(template);
+        return ApiResponse.success(
+            templateConverter.toTemplateResponse(updatedTemplate),
+            messageHandler.getMessage("success.question.added", templateId)
+        );
     }
 
     @Transactional
-    public void removeQuestion(Integer templateId, Integer questionId) {
+    public ApiResponse<Void> removeQuestion(Integer templateId, Integer questionId) {
         Integer companyId = principalResolver.getCompanyId();
 
-        EvaluationTemplate template = templateRepository.findByIdAndCompanyId(templateId, companyId)
-            .orElseThrow(() -> new EntityNotFoundException("Template not found with id: " + templateId));
+        EvaluationTemplate template = templateRepository.findByIdAndCompanyId(templateId, companyId).orElse(null);
+        if (template == null) {
+            return ApiResponse.failure(messageHandler.getMessage("error.template.notFound", templateId));
+        }
 
         boolean removed = template.getQuestions().removeIf(question -> question.getId().equals(questionId));
         if (!removed) {
-            System.out.println("Question " + questionId + " not found in template " + templateId);
+            return ApiResponse.failure(messageHandler.getMessage("error.question.notFoundInTemplate", questionId, templateId));
         }
 
         templateRepository.save(template);
+        return ApiResponse.success(null, messageHandler.getMessage("success.question.removed", questionId, templateId));
     }
 
     @Transactional
-    public void setVisibility(Integer templateId, List<SetTemplateVisibilityRequest> requests) {
+    public ApiResponse<Void> setVisibility(Integer templateId, List<SetTemplateVisibilityRequest> requests) {
         Integer companyId = principalResolver.getCompanyId();
 
-        EvaluationTemplate template = templateRepository.findByIdAndCompanyId(templateId, companyId)
-            .orElseThrow(() -> new EntityNotFoundException("Template not found with id: " + templateId));
+        EvaluationTemplate template = templateRepository.findByIdAndCompanyId(templateId, companyId).orElse(null);
+        if (template == null) {
+            return ApiResponse.failure(messageHandler.getMessage("error.template.notFound", templateId));
+        }
 
         Set<Integer> evaluatorRoleIds = requests.stream()
             .map(SetTemplateVisibilityRequest::getEvaluatorRoleId)
@@ -111,45 +126,55 @@ public class EvaluationTemplateService {
 
         if (evaluatorRoleIds.isEmpty()) {
             template.getEvaluatorRoles().clear();
-            templateRepository.save(template);
-            return;
+        } else {
+            Set<Role> evaluatorRoles = roleRepository.findAllByIdInAndCompanyId(evaluatorRoleIds, companyId);
+            if (evaluatorRoles.size() != evaluatorRoleIds.size()) {
+                return ApiResponse.failure(messageHandler.getMessage("error.role.someNotFoundInCompany"));
+            }
+            template.setEvaluatorRoles(evaluatorRoles);
         }
 
-        Set<Role> evaluatorRoles = roleRepository.findAllByIdInAndCompanyId(evaluatorRoleIds, companyId);
-
-        if (evaluatorRoles.size() != evaluatorRoleIds.size()) {
-            throw new EntityNotFoundException("One or more evaluator roles not found or do not belong to the company.");
-        }
-        template.setEvaluatorRoles(evaluatorRoles);
         templateRepository.save(template);
+        return ApiResponse.success(null, messageHandler.getMessage("success.template.visibilityUpdated", templateId));
     }
 
     @Transactional
-    public EvaluationTemplateResponse updateTemplate(Integer templateId, EvaluationTemplateRequest request) {
+    public ApiResponse<EvaluationTemplateResponse> updateTemplate(Integer templateId, EvaluationTemplateRequest request) {
         Integer companyId = principalResolver.getCompanyId();
 
-        EvaluationTemplate template = templateRepository.findByIdAndCompanyId(templateId, companyId)
-            .orElseThrow(() -> new EntityNotFoundException("Template not found with id: " + templateId));
+        EvaluationTemplate template = templateRepository.findByIdAndCompanyId(templateId, companyId).orElse(null);
+        if (template == null) {
+            return ApiResponse.failure(messageHandler.getMessage("error.template.notFound", templateId));
+        }
 
-        Role targetRole = roleRepository.findByIdAndCompanyId(request.getTargetRoleId(), companyId)
-            .orElseThrow(() -> new EntityNotFoundException("Target role not found with id: " + request.getTargetRoleId()));
+        Role targetRole = roleRepository.findByIdAndCompanyId(request.getTargetRoleId(), companyId).orElse(null);
+        if (targetRole == null) {
+            return ApiResponse.failure(messageHandler.getMessage("error.role.notFound", request.getTargetRoleId()));
+        }
 
         template.setName(request.getName());
         template.setDescription(request.getDescription());
         template.setTargetRole(targetRole);
 
-        templateRepository.save(template);
-
-        return templateConverter.toTemplateResponse(template);
+        EvaluationTemplate updatedTemplate = templateRepository.save(template);
+        return ApiResponse.success(
+            templateConverter.toTemplateResponse(updatedTemplate),
+            messageHandler.getMessage("success.template.updated", templateId)
+        );
     }
 
     @Transactional
-    public void deleteTemplate(Integer templateId) {
+    public ApiResponse<Void> deleteTemplate(Integer templateId) {
         Integer companyId = principalResolver.getCompanyId();
 
-        EvaluationTemplate template = templateRepository.findByIdAndCompanyId(templateId, companyId)
-            .orElseThrow(() -> new EntityNotFoundException("Template not found with id: " + templateId));
+        EvaluationTemplate template = templateRepository.findByIdAndCompanyId(templateId, companyId).orElse(null);
+        if (template == null) {
+            return ApiResponse.failure(messageHandler.getMessage("error.template.notFound", templateId));
+        }
 
-        templateRepository.delete(template);
+        // TODO check before delete
+
+        templateRepository.deleteById(templateId);
+        return ApiResponse.success(null, messageHandler.getMessage("success.template.deleted", templateId));
     }
 }
