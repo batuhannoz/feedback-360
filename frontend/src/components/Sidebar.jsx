@@ -3,12 +3,21 @@ import { useSelector, useDispatch } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
 import { logout } from '../store/authSlice';
 
+const companyLinks = [
+    { name: 'Dashboard', path: '/admin/dashboard' },
+    { name: 'Employees', path: '/admin/employees' },
+    { name: 'Roles', path: '/admin/roles' },
+    { name: 'Evaluation Periods', path: '/admin/periods' },
+    { name: 'Evaluation Templates', path: '/admin/templates' },
+];
+
 const adminLinks = [
     { name: 'Dashboard', path: '/admin/dashboard' },
     { name: 'Employees', path: '/admin/employees' },
     { name: 'Roles', path: '/admin/roles' },
     { name: 'Evaluation Periods', path: '/admin/periods' },
     { name: 'Evaluation Templates', path: '/admin/templates' },
+    { name: 'My Evaluations', path: '/employee/evaluations' },
 ];
 
 const employeeLinks = [

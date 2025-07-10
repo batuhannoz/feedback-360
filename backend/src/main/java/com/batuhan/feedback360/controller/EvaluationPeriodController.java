@@ -20,37 +20,33 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @AllArgsConstructor
+@PreAuthorize("hasAnyRole('COMPANY', 'ADMIN')")
 @RequestMapping("/api/v1/evaluation/period")
 public class EvaluationPeriodController {
 
     private final EvaluationPeriodService evaluationPeriodService;
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('COMPANY', 'ADMIN')")
     public ResponseEntity<ApiResponse<EvaluationPeriodResponse>> createEvaluationPeriod(@RequestBody EvaluationPeriodRequest request) {
         return new ResponseEntity<>(evaluationPeriodService.createPeriod(request), HttpStatus.CREATED);
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('COMPANY', 'ADMIN')")
     public ResponseEntity<ApiResponse<List<EvaluationPeriodResponse>>> getAllPeriods() {
         return ResponseEntity.ok(evaluationPeriodService.findAllPeriodsByCompany());
     }
 
     @GetMapping("/{periodId}")
-    @PreAuthorize("hasAnyRole('COMPANY', 'ADMIN')")
     public ResponseEntity<ApiResponse<EvaluationPeriodResponse>> getPeriodById(@PathVariable Integer periodId) {
         return ResponseEntity.ok(evaluationPeriodService.findPeriodById(periodId));
     }
 
     @PutMapping("/{periodId}")
-    @PreAuthorize("hasAnyRole('COMPANY', 'ADMIN')")
     public ResponseEntity<ApiResponse<EvaluationPeriodResponse>> updatePeriod(@PathVariable Integer periodId, @RequestBody EvaluationPeriodRequest request) {
         return ResponseEntity.ok(evaluationPeriodService.updatePeriod(periodId, request));
     }
 
     @DeleteMapping("/{periodId}")
-    @PreAuthorize("hasAnyRole('COMPANY', 'ADMIN')")
     public ResponseEntity<ApiResponse<Void>> deletePeriod(@PathVariable Integer periodId) {
         return ResponseEntity.ok(evaluationPeriodService.deletePeriod(periodId));
     }

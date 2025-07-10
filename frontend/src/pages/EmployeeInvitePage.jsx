@@ -1,16 +1,38 @@
-import React, { useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import AuthService from '../services/authService';
 
 const EmployeeInvitePage = () => {
-    const { token } = useParams();
+    const location = useLocation();
+    const navigate = useNavigate();
+
     const [formData, setFormData] = useState({
+        email: '',
         password: '',
         passwordAgain: ''
     });
+    const [token, setToken] = useState(null);
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
-    const navigate = useNavigate();
+
+    useEffect(() => {
+        const queryParams = new URLSearchParams(location.search);
+        const invitationToken = queryParams.get('token');
+        const email = queryParams.get('email');
+        
+        if (invitationToken) {
+            setToken(invitationToken);
+        }
+
+        if (email) {
+            setFormData(prev => ({ ...prev, email }));
+        }
+
+        if (!invitationToken) {
+            setError('Davet linki geçersiz veya eksik.');
+            navigate('/sign-in');
+        }
+    }, [location, navigate]);
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -18,7 +40,7 @@ const EmployeeInvitePage = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (formData.parola !== formData.parolaTekrar) {
+        if (formData.password !== formData.passwordAgain) {
             setError('Parolalar eşleşmiyor.');
             return;
         }
@@ -27,10 +49,11 @@ const EmployeeInvitePage = () => {
         try {
             await AuthService.completeEmployeeInvitation({
                 invitationToken: token,
+                email: formData.email,
                 password: formData.password,
             });
             alert('Kaydınız başarıyla tamamlandı! Şimdi giriş yapabilirsiniz.');
-            navigate('/sign-in');
+            navigate('/sign-in', { state: { email: formData.email } });
         } catch (err) {
             setError(err.response?.data?.message || 'Davet geçersiz veya süresi dolmuş olabilir.');
         } finally {
@@ -51,6 +74,10 @@ const EmployeeInvitePage = () => {
                 </div>
                 <form className="mt-8 space-y-6 rounded-xl bg-white p-8 shadow-lg" onSubmit={handleSubmit}>
                     <div className="space-y-4">
+                        <div>
+                            <label htmlFor="email" className="sr-only">Email address</label>
+                            <input id="email" name="email" type="email" value={formData.email} required disabled className="relative block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 bg-gray-100 text-gray-500 focus:z-10 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm" placeholder="Email address"/>
+                        </div>
                         <div>
                             <label htmlFor="parola" className="sr-only">Yeni Parola</label>
                             <input id="password" name="password" type="password" value={formData.password} onChange={handleChange} required minLength="6" className="relative block w-full appearance-none rounded-md border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:z-10 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm" placeholder="Yeni Parola"/>

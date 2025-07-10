@@ -27,25 +27,21 @@ public class RoleController {
     private final RoleService roleService;
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('COMPANY', 'ADMIN')")
     public ResponseEntity<ApiResponse<RoleResponse>> createRole(@RequestBody RoleRequest request) {
         return new ResponseEntity<>(roleService.createRole(request), HttpStatus.CREATED);
     }
 
     @GetMapping("/{roleId}/employee")
-    @PreAuthorize("hasAnyRole('COMPANY', 'ADMIN')")
     public ResponseEntity<ApiResponse<List<EmployeeDetailResponse>>> getEmployeeForRole(@PathVariable Integer roleId) {
         return ResponseEntity.ok(roleService.getEmployeeForRoleId(roleId));
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('COMPANY', 'ADMIN')")
     public ResponseEntity<ApiResponse<List<RoleResponse>>> listRoles() {
         return ResponseEntity.ok(roleService.getAllRoles());
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('COMPANY', 'ADMIN')")
     public ResponseEntity<ApiResponse<Void>> deleteRole(@PathVariable Integer id) {
         return ResponseEntity.ok(roleService.deleteRole(id));
     }

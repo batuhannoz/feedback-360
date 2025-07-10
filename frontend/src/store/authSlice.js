@@ -23,7 +23,7 @@ const authSlice = createSlice({
                 id: decodedToken.user_id,
                 email: decodedToken.sub,
                 companyId: decodedToken.company_id,
-                roles: [decodedToken.user_type], // `ProtectedRoute` expects an array of roles
+                roles: [decodedToken.user_type],
             };
         },
         logout: (state) => {

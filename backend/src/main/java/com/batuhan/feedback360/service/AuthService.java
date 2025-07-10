@@ -32,6 +32,10 @@ public class AuthService {
     private final MessageHandler messageHandler;
 
     public ApiResponse<Company> companySignUp(SignUpRequest request) {
+        if (companyRepository.findByEmail(request.getEmail()).isPresent()) {
+            return ApiResponse.failure(messageHandler.getMessage("auth.company.signup.emailExists"));
+        }
+
         Company company = Company.builder()
             .name(request.getCompanyName())
             .email(request.getEmail())

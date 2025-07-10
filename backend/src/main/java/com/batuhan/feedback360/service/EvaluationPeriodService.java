@@ -42,7 +42,7 @@ public class EvaluationPeriodService {
     private final EvaluationRepository evaluationRepository;
     private final MessageHandler messageHandler;
 
-
+    // TODO allow self evaluation
     @Transactional
     public ApiResponse<EvaluationPeriodResponse> createPeriod(EvaluationPeriodRequest request) {
         Company company = companyRepository.getReferenceById(principalResolver.getCompanyId());

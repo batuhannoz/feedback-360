@@ -41,15 +41,13 @@ function App() {
 
     return (
         <Router>
-            <Toaster richColors position="top-right" />
+            <Toaster richColors position="bottom-right" duration={1500} />
             <Routes>
-                {/* Public Routes */}
                 <Route path="/sign-in" element={<SignInPage />} />
                 <Route path="/company-sign-up" element={<CompanySignUpPage />} />
-                <Route path="/complete-invitation/:token" element={<EmployeeInvitePage />} />
+                <Route path="/complete-invitation" element={<EmployeeInvitePage />} />
                 <Route path="/unauthorized" element={<UnauthorizedPage />} />
 
-                {/* Protected Routes */}
                 <Route element={<MainLayout />}>
                     <Route element={<ProtectedRoute allowedRoles={['ADMIN', 'COMPANY']} />}>
                         <Route path="/admin/dashboard" element={<AdminDashboard />} />
@@ -67,7 +65,6 @@ function App() {
                     </Route>
                 </Route>
 
-                {/* Redirects */}
                 <Route path="/" element={<Navigate to={getDefaultRoute()} replace />} />
                 <Route path="*" element={<Navigate to={getDefaultRoute()} replace />} />
             </Routes>

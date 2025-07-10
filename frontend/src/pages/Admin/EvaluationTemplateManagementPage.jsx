@@ -81,14 +81,11 @@ const EvaluationTemplateManagementPage = () => {
 
     const refreshTemplateInModal = async () => {
         try {
-            // In a real app, you might fetch a single template by ID
-            // For simplicity, we'll refetch all and find the one we need.
             const response = await evaluationTemplateService.getAllTemplates();
             const updatedTemplate = response.data.find(t => t.id === currentTemplate.id);
             if (updatedTemplate) {
                 setCurrentTemplate(updatedTemplate);
             }
-            // Also update the main list
             setTemplates(response.data);
         } catch (error) {
             console.error('Error refreshing template data:', error);
@@ -216,8 +213,6 @@ const EvaluationTemplateManagementPage = () => {
                                 </div>
                             </div>
                         </div>
-
-                        {/* Visibility Management */}
                         <div>
                             <h3 className="text-lg font-semibold mb-2">Evaluator Roles</h3>
                             <p className="text-sm text-gray-600 mb-2">Select roles that can use this template to evaluate others. (Cmd/Ctrl + Click for multiple)</p>

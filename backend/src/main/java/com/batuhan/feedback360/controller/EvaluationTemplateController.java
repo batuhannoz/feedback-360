@@ -22,50 +22,44 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @AllArgsConstructor
+@PreAuthorize("hasAnyRole('COMPANY', 'ADMIN')")
 @RequestMapping("/api/v1/evaluation/template")
 public class EvaluationTemplateController {
 
     private final EvaluationTemplateService templateService;
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('COMPANY', 'ADMIN')")
     public ResponseEntity<ApiResponse<List<EvaluationTemplateResponse>>> listTemplates() {
         return ResponseEntity.ok(templateService.listTemplates());
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('COMPANY', 'ADMIN')")
     public ResponseEntity<ApiResponse<EvaluationTemplateResponse>> createTemplate(@RequestBody EvaluationTemplateRequest request) {
         return new ResponseEntity<>(templateService.createTemplate(request), HttpStatus.CREATED);
     }
 
     @PutMapping("/{templateId}")
-    @PreAuthorize("hasAnyRole('COMPANY', 'ADMIN')")
     public ResponseEntity<ApiResponse<EvaluationTemplateResponse>> updateTemplate(@PathVariable Integer templateId, @RequestBody EvaluationTemplateRequest request) {
         return ResponseEntity.ok(templateService.updateTemplate(templateId, request));
     }
 
     @PostMapping("/{templateId}/question")
-    @PreAuthorize("hasAnyRole('COMPANY', 'ADMIN')")
     public ResponseEntity<ApiResponse<EvaluationTemplateResponse>> addQuestionToTemplate(@PathVariable Integer templateId, @RequestBody QuestionRequest request) {
         return ResponseEntity.ok(templateService.addQuestion(templateId, request));
     }
 
     @DeleteMapping("/{templateId}/question/{questionId}")
-    @PreAuthorize("hasAnyRole('COMPANY', 'ADMIN')")
     public ResponseEntity<Void> removeQuestionFromTemplate(@PathVariable Integer templateId, @PathVariable Integer questionId) {
         templateService.removeQuestion(templateId, questionId);
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/{templateId}/visibility")
-    @PreAuthorize("hasAnyRole('COMPANY', 'ADMIN')")
     public ResponseEntity<ApiResponse<Void>> setTemplateVisibility(@PathVariable Integer templateId, @RequestBody List<SetTemplateVisibilityRequest> request) {
         return ResponseEntity.ok(templateService.setVisibility(templateId, request));
     }
 
     @DeleteMapping("/{templateId}")
-    @PreAuthorize("hasAnyRole('COMPANY', 'ADMIN')")
     public ResponseEntity<ApiResponse<Void>> deleteTemplate(@PathVariable Integer templateId) {
         return ResponseEntity.ok(templateService.deleteTemplate(templateId));
     }

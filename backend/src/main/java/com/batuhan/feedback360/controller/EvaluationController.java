@@ -20,31 +20,28 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @AllArgsConstructor
+@PreAuthorize("hasAnyRole('COMPANY', 'ADMIN')")
 @RequestMapping("/api/v1/evaluation")
 public class EvaluationController {
 
     private final EvaluationService evaluationService;
 
     @GetMapping("/periods/{periodId}/participants")
-    @PreAuthorize("hasAnyRole('COMPANY', 'ADMIN')")
     public ResponseEntity<ApiResponse<List<ParticipantCompletionStatusResponse>>> getParticipantStatus(@PathVariable Integer periodId) {
         return ResponseEntity.ok(evaluationService.getParticipantCompletionStatus(periodId));
     }
 
     @GetMapping("/periods/{periodId}/user/{userId}/received")
-    @PreAuthorize("hasAnyRole('COMPANY', 'ADMIN')")
     public ResponseEntity<ApiResponse<List<ReceivedEvaluationResponse>>> getReceivedEvaluations(@PathVariable Integer periodId, @PathVariable Integer userId) {
         return ResponseEntity.ok(evaluationService.getReceivedEvaluationsForUser(periodId, userId));
     }
 
     @GetMapping("/periods/{periodId}/user/{userId}/given")
-    @PreAuthorize("hasAnyRole('COMPANY', 'ADMIN')")
     public ResponseEntity<ApiResponse<List<GivenEvaluationResponse>>> getGivenEvaluations(@PathVariable Integer periodId, @PathVariable Integer userId) {
         return ResponseEntity.ok(evaluationService.getGivenEvaluationsForUser(periodId, userId));
     }
 
     @GetMapping("/{evaluationId}/details")
-    @PreAuthorize("hasAnyRole('COMPANY', 'ADMIN')")
     public ResponseEntity<ApiResponse<EvaluationDetailResponse>> getEvaluationDetailsForAdmin(@PathVariable Integer evaluationId) {
         return ResponseEntity.ok(evaluationService.getEvaluationDetailsForAdmin(evaluationId));
     }

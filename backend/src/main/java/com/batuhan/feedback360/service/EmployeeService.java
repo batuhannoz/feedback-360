@@ -35,6 +35,7 @@ import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Autowired;
 
 @Service
 @AllArgsConstructor
@@ -49,6 +50,7 @@ public class EmployeeService {
     private final EvaluationPeriodRepository evaluationPeriodRepository;
     private final EvaluationConverter evaluationConverter;
     private final MessageHandler messageHandler;
+    private final EmailService emailService;
 
 
     public ApiResponse<Employee> createEmployee(EmployeeRequest request) {
@@ -65,7 +67,7 @@ public class EmployeeService {
             .invitationValidityDate(LocalDateTime.now().plusDays(7))
             .build();
 
-        // TODO: send invitation mail with 'invitationToken'
+        emailService.sendInvitationEmail(employee.getEmail(), employee.getInvitationToken());
 
         return ApiResponse.success(employeeRepository.save(employee), "");
     }
