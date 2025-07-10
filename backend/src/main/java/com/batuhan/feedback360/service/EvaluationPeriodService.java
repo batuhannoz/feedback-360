@@ -9,7 +9,6 @@ import com.batuhan.feedback360.model.entitiy.Evaluation;
 import com.batuhan.feedback360.model.entitiy.EvaluationPeriod;
 import com.batuhan.feedback360.model.entitiy.EvaluationTemplate;
 import com.batuhan.feedback360.model.entitiy.Question;
-import com.batuhan.feedback360.model.entitiy.Role;
 import com.batuhan.feedback360.model.enums.EvaluationStatus;
 import com.batuhan.feedback360.model.request.EvaluationPeriodRequest;
 import com.batuhan.feedback360.model.response.ApiResponse;
@@ -42,7 +41,6 @@ public class EvaluationPeriodService {
     private final EvaluationRepository evaluationRepository;
     private final MessageHandler messageHandler;
 
-    // TODO allow self evaluation
     @Transactional
     public ApiResponse<EvaluationPeriodResponse> createPeriod(EvaluationPeriodRequest request) {
         Company company = companyRepository.getReferenceById(principalResolver.getCompanyId());
@@ -67,40 +65,37 @@ public class EvaluationPeriodService {
         List<Evaluation> evaluationsToCreate = new ArrayList<>();
         List<Employee> allEmployeesInCompany = employeeRepository.findAllByCompany(company);
 
-        for (EvaluationTemplate template : templatesForPeriod) {
-            Role targetRole = template.getTargetRole();
-            Set<Role> evaluatorRoles = template.getEvaluatorRoles();
+        for (Employee evaluated : allEmployeesInCompany) {
+            for (Employee evaluator : allEmployeesInCompany) {
+                if (!request.isSelfEvaluationIncluded() && evaluated.getId().equals(evaluator.getId())) {
+                    continue;
+                }
 
-            List<Employee> evaluatedEmployees = allEmployeesInCompany.stream()
-                .filter(e -> e.getRoles().contains(targetRole))
-                .toList();
+                Set<Question> questionsForPair = new HashSet<>();
+                for (EvaluationTemplate template : templatesForPeriod) {
+                    boolean isTarget = evaluated.getRoles().contains(template.getTargetRole());
+                    boolean isEvaluator = evaluator.getRoles().stream().anyMatch(role -> template.getEvaluatorRoles().contains(role));
 
-            List<Employee> evaluatorEmployees = allEmployeesInCompany.stream()
-                .filter(e -> e.getRoles().stream().anyMatch(evaluatorRoles::contains))
-                .toList();
-
-            Set<Question> questionsForTemplate = template.getQuestions();
-
-            for (Employee evaluated : evaluatedEmployees) {
-                for (Employee evaluator : evaluatorEmployees) {
-                    if (evaluated.getId().equals(evaluator.getId())) {
-                        continue;
+                    if (isTarget && isEvaluator) {
+                        questionsForPair.addAll(template.getQuestions());
                     }
+                }
 
+                if (!questionsForPair.isEmpty()) {
                     Evaluation evaluation = Evaluation.builder()
-                        .period(evaluationPeriod)
-                        .evaluated(evaluated)
-                        .evaluator(evaluator)
-                        .status(EvaluationStatus.NOT_STARTED)
-                        .build();
+                            .period(evaluationPeriod)
+                            .evaluated(evaluated)
+                            .evaluator(evaluator)
+                            .status(EvaluationStatus.NOT_STARTED)
+                            .build();
 
-                    Set<Answer> answers = questionsForTemplate.stream()
-                        .map(question -> Answer.builder()
-                            .evaluation(evaluation)
-                            .question(question)
-                            .answer(null)
-                            .build())
-                        .collect(Collectors.toSet());
+                    Set<Answer> answers = questionsForPair.stream()
+                            .map(question -> Answer.builder()
+                                    .evaluation(evaluation)
+                                    .question(question)
+                                    .answer(null)
+                                    .build())
+                            .collect(Collectors.toSet());
 
                     evaluation.setAnswers(answers);
                     evaluationsToCreate.add(evaluation);

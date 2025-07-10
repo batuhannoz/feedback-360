@@ -19,7 +19,7 @@ const EmployeeInvitePage = () => {
         const queryParams = new URLSearchParams(location.search);
         const invitationToken = queryParams.get('token');
         const email = queryParams.get('email');
-        
+
         if (invitationToken) {
             setToken(invitationToken);
         }

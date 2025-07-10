@@ -14,4 +14,5 @@ public class EvaluationPeriodRequest {
     private LocalDate startDate;
     private LocalDate endDate;
     private List<Integer> templateIds;
+    private boolean isSelfEvaluationIncluded;
 }
