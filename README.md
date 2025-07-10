@@ -1,46 +1,45 @@
 # Feedback 360
 
-Bu proje, şirket içi 360 derece geri bildirim süreçlerini yönetmek için geliştirilmiş bir web uygulamasıdır.
+This project is a web application developed to manage internal 360-degree feedback processes.
 
-## Proje Hakkında
+## About the Project
 
-Feedback 360, çalışanların hem yöneticilerinden hem de ekip arkadaşlarından yapıcı geri bildirimler almasını sağlayarak kişisel ve profesyonel gelişimlerine katkıda bulunur. Yöneticiler, çalışanları için geri bildirim döngüleri başlatabilir ve sonuçları takip edebilir.
+Feedback 360 contributes to the personal and professional development of employees by enabling them to receive constructive feedback from both their managers and teammates. Managers can initiate feedback cycles for their employees and track the results.
 
-## Teknolojiler
+## Technologies
 
-- **Backend:** (Kullanılan teknolojileri buraya ekleyebilirsiniz, örn: Node.js, Express, MongoDB)
-- **Frontend:** (Kullanılan teknolojileri buraya ekleyebilirsiniz, örn: React, Vite, Tailwind CSS)
+  - **Backend:** Java Spring Boot
+  - **Frontend:** React, Vite, Tailwind CSS
 
-## Yol Haritası (Roadmap)
+## Roadmap
 
 ### Backend
 
-- [ ] **Çoklu Dil Desteği (Multi-language Support):** Sistemin farklı dillerde kullanılabilmesi için altyapı desteği eklenecektir.
-- [ ] **Loglama (Logging):** Hata takibi ve performans izleme için kapsamlı bir loglama mekanizması entegre edilecektir.
+  - [ ] **Multi-language Support:** Infrastructure support will be added for the system to be used in different languages.
+  - [ ] **Logging:** A comprehensive logging mechanism will be integrated for error tracking and performance monitoring.
 
 ### Frontend
 
-- [ ] **Çoklu Dil Desteği (Multi-language Support):** Arayüzün farklı dil seçenekleri ile sunulması sağlanacaktır.
+  - [ ] **Multi-language Support:** The interface will be provided with different language options.
 
-## Kurulum
+## Installation
 
-Projenin yerel makinede çalıştırılması için gerekli adımları buraya ekleyebilirsiniz.
+You can add the necessary steps to run the project on a local machine here.
 
-### Backend Kurulumu
+### Backend Installation
 
 ```bash
-# Örnek kurulum adımları
+# Example installation steps
 cd backend
 npm install
 npm start
 ```
 
-### Frontend Kurulumu
+### Frontend Installation
 
 ```bash
-# Örnek kurulum adımları
+# Example installation steps
 cd frontend
 npm install
 npm run dev
 ```
-feedback-360
