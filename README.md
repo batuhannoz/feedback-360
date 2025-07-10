@@ -21,25 +21,3 @@ Feedback 360 contributes to the personal and professional development of employe
 ### Frontend
 
   - [ ] **Multi-language Support:** The interface will be provided with different language options.
-
-## Installation
-
-You can add the necessary steps to run the project on a local machine here.
-
-### Backend Installation
-
-```bash
-# Example installation steps
-cd backend
-npm install
-npm start
-```
-
-### Frontend Installation
-
-```bash
-# Example installation steps
-cd frontend
-npm install
-npm run dev
-```
