@@ -12,4 +12,5 @@ public class EmployeeRequest {
     private String lastName;
     private String email;
     private Boolean isAdmin;
+    private Boolean isActive;
 }

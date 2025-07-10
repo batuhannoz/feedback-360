@@ -8,7 +8,14 @@ const EvaluationPeriodManagementPage = () => {
         const [periods, setPeriods] = useState([]);
     const [templates, setTemplates] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [newPeriod, setNewPeriod] = useState({ name: '', description: '', startDate: '', endDate: '', templateIds: [] });
+    const [newPeriod, setNewPeriod] = useState({
+        name: '',
+        description: '',
+        startDate: '',
+        endDate: '',
+        templateIds: [],
+        isSelfEvaluationIncluded: false,
+    });
 
         useEffect(() => {
         fetchPeriods();
@@ -36,11 +43,17 @@ const EvaluationPeriodManagementPage = () => {
     const handleCreatePeriod = async (e) => {
         e.preventDefault();
         try {
-            const periodRequest = new EvaluationPeriodRequest(newPeriod.name, newPeriod.startDate, newPeriod.endDate, newPeriod.templateIds);
+            const periodRequest = new EvaluationPeriodRequest(
+                newPeriod.name,
+                newPeriod.startDate,
+                newPeriod.endDate,
+                newPeriod.templateIds,
+                newPeriod.isSelfEvaluationIncluded
+            );
             await evaluationPeriodService.createEvaluationPeriod(periodRequest);
             fetchPeriods();
             setIsModalOpen(false);
-                        setNewPeriod({ name: '', description: '', startDate: '', endDate: '', templateIds: [] });
+                        setNewPeriod({ name: '', description: '', startDate: '', endDate: '', templateIds: [], isSelfEvaluationIncluded: false });
         } catch (error) {
             console.error('Error creating evaluation period:', error);
         }
@@ -49,13 +62,17 @@ const EvaluationPeriodManagementPage = () => {
     const handleInputChange = (e) => {
                 const { name, value, type, checked } = e.target;
         if (type === 'checkbox') {
-            const templateId = parseInt(name);
-            setNewPeriod(prev => {
-                const newTemplateIds = checked
-                    ? [...prev.templateIds, templateId]
-                    : prev.templateIds.filter(id => id !== templateId);
-                return { ...prev, templateIds: newTemplateIds };
-            });
+            if (name === 'isSelfEvaluationIncluded') {
+                setNewPeriod(prev => ({ ...prev, isSelfEvaluationIncluded: checked }));
+            } else {
+                const templateId = parseInt(name);
+                setNewPeriod(prev => {
+                    const newTemplateIds = checked
+                        ? [...prev.templateIds, templateId]
+                        : prev.templateIds.filter(id => id !== templateId);
+                    return { ...prev, templateIds: newTemplateIds };
+                });
+            }
         } else {
                     setNewPeriod({ ...newPeriod, [name]: value });
         }
@@ -107,6 +124,22 @@ const EvaluationPeriodManagementPage = () => {
                                     </label>
                                 </div>
                             ))}
+                        </div>
+                    </div>
+
+                    <div className="mb-4">
+                        <div className="flex items-center">
+                            <input
+                                type="checkbox"
+                                id="isSelfEvaluationIncluded"
+                                name="isSelfEvaluationIncluded"
+                                checked={newPeriod.isSelfEvaluationIncluded}
+                                onChange={handleInputChange}
+                                className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                            />
+                            <label htmlFor="isSelfEvaluationIncluded" className="ml-3 block text-sm text-gray-900">
+                                Include Self-Evaluation
+                            </label>
                         </div>
                     </div>
                     <div className="flex justify-end">

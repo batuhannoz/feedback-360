@@ -49,9 +49,8 @@ public class EvaluationTemplateController {
     }
 
     @DeleteMapping("/{templateId}/question/{questionId}")
-    public ResponseEntity<Void> removeQuestionFromTemplate(@PathVariable Integer templateId, @PathVariable Integer questionId) {
-        templateService.removeQuestion(templateId, questionId);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<ApiResponse<Void>> removeQuestionFromTemplate(@PathVariable Integer templateId, @PathVariable Integer questionId) {
+        return ResponseEntity.ok(templateService.removeQuestion(templateId, questionId));
     }
 
     @PostMapping("/{templateId}/visibility")

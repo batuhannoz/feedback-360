@@ -52,23 +52,25 @@ public class EmployeeService {
     private final MessageHandler messageHandler;
     private final EmailService emailService;
 
-
+    @Transactional
     public ApiResponse<Employee> createEmployee(EmployeeRequest request) {
+        if (employeeRepository.findByEmail(request.getEmail()).isEmpty()) {
+            return ApiResponse.failure(messageHandler.getMessage("error.employee.emailExists", request.getEmail()));
+        }
         Company company = new Company();
         company.setId(principalResolver.getCompanyId());
 
-        var employee = Employee.builder()
+        Employee employee = Employee.builder()
             .firstName(request.getFirstName())
             .lastName(request.getLastName())
             .email(request.getEmail())
             .company(company)
             .isAdmin(request.getIsAdmin())
             .invitationToken(UUID.randomUUID().toString())
+            .isActive(true)
             .invitationValidityDate(LocalDateTime.now().plusDays(7))
             .build();
-
         emailService.sendInvitationEmail(employee.getEmail(), employee.getInvitationToken());
-
         return ApiResponse.success(employeeRepository.save(employee), "");
     }
 
@@ -92,7 +94,6 @@ public class EmployeeService {
         if (employee == null) {
             return ApiResponse.failure(messageHandler.getMessage("error.employee.notFound", employeeId));
         }
-
         if (!employee.getCompany().getId().equals(company.getId())) {
             return ApiResponse.failure(messageHandler.getMessage("error.employee.noPermissionView"));
         }
@@ -164,8 +165,10 @@ public class EmployeeService {
 
         employee.setFirstName(request.getFirstName());
         employee.setLastName(request.getLastName());
+        // TODO if email changed send new mail with invitation token
         employee.setEmail(request.getEmail());
         employee.setIsAdmin(request.getIsAdmin());
+        employee.setIsActive(request.getIsActive());
 
         Employee updatedEmployee = employeeRepository.save(employee);
         return ApiResponse.success(employeeConverter.toEmployeeDetailResponse(updatedEmployee), "");

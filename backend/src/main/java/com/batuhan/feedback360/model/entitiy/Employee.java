@@ -120,8 +120,4 @@ public class Employee implements UserDetails {
     public boolean isEnabled() {
         return true;
     }
-
-    public boolean getIsActive() {
-        return true;
-    }
 }
