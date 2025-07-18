@@ -1,21 +1,19 @@
 package com.batuhan.feedback360.service;
 
-import com.batuhan.feedback360.model.entitiy.Company;
-import com.batuhan.feedback360.model.entitiy.Employee;
+import com.batuhan.feedback360.model.entitiy.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.stereotype.Service;
-
 import java.security.Key;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.stereotype.Service;
 
 @Service
 public class JwtService {
@@ -42,29 +40,21 @@ public class JwtService {
         return claimsResolver.apply(claims);
     }
 
-    public String generateAccessToken(UserDetails userDetails) {
+    public String generateAccessToken(User user) {
         Map<String, Object> extraClaims = new HashMap<>();
         extraClaims.put("type", "ACCESS");
 
-        if (userDetails instanceof Company company) {
-            extraClaims.put("user_type", "COMPANY");
-            extraClaims.put("user_id", company.getId());
-            extraClaims.put("company_id", company.getId());
-            company.getAuthorities().stream().findFirst().ifPresent(auth -> extraClaims.put("role", auth.getAuthority()));
-        } else if (userDetails instanceof Employee employee) {
-            extraClaims.put("user_type", "EMPLOYEE");
-            extraClaims.put("user_id", employee.getId());
-            extraClaims.put("company_id", employee.getCompany().getId());
-            employee.getAuthorities().stream().findFirst().ifPresent(auth -> extraClaims.put("role", auth.getAuthority()));
-        }
+        extraClaims.put("user_id", user.getId());
+        extraClaims.put("company_id", user.getCompany().getId());
+        user.getAuthorities().stream().findFirst().ifPresent(auth -> extraClaims.put("role", auth.getAuthority()));
 
-        return generateToken(extraClaims, userDetails, accessTokenExpiration);
+        return generateToken(extraClaims, user, accessTokenExpiration);
     }
 
-    public String generateRefreshToken(UserDetails userDetails) {
+    public String generateRefreshToken(User user) {
         Map<String, Object> extraClaims = new HashMap<>();
         extraClaims.put("type", "REFRESH");
-        return generateToken(extraClaims, userDetails, refreshTokenExpiration);
+        return generateToken(extraClaims, user, refreshTokenExpiration);
     }
 
     private String generateToken(Map<String, Object> extraClaims, UserDetails userDetails, long expiration) {

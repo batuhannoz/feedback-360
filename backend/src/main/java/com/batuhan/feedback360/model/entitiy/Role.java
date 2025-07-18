@@ -40,7 +40,7 @@ public class Role {
     private String name;
 
     @ManyToMany(mappedBy = "roles", fetch = FetchType.LAZY)
-    private Set<Employee> employees;
+    private Set<User> users;
 
     @Column(name = "created_at", updatable = false)
     @CreationTimestamp

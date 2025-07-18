@@ -1,6 +1,5 @@
 package com.batuhan.feedback360.config;
 
-import com.batuhan.feedback360.model.enums.UserType;
 import com.batuhan.feedback360.service.JwtService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -8,6 +7,8 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.Collections;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -16,8 +17,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
-import java.io.IOException;
-import java.util.Collections;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 
 @Component
@@ -52,7 +51,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         claims.get("user_id", Integer.class),
                         claims.get("company_id", Integer.class),
                         claims.getSubject(),
-                        UserType.valueOf(claims.get("user_type", String.class)),
                         Collections.singletonList(authority)
                     );
                     UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
@@ -65,11 +63,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 }
             }
         } catch (ExpiredJwtException e) {
-
+            // TODO notify user jwt is expired
         } catch (Exception e) {
             handlerExceptionResolver.resolveException(request, response, null, e);
         }
-
         filterChain.doFilter(request, response);
     }
 }

@@ -1,9 +1,11 @@
 package com.batuhan.feedback360.controller;
 
-import com.batuhan.feedback360.model.request.EmployeeSignUpRequest;
+import com.batuhan.feedback360.model.request.CompanySignUpRequest;
+import com.batuhan.feedback360.model.request.ForgotPasswordRequest;
 import com.batuhan.feedback360.model.request.RefreshTokenRequest;
+import com.batuhan.feedback360.model.request.ResetPasswordRequest;
 import com.batuhan.feedback360.model.request.SignInRequest;
-import com.batuhan.feedback360.model.request.SignUpRequest;
+import com.batuhan.feedback360.model.request.UserSignUpRequest;
 import com.batuhan.feedback360.model.response.ApiResponse;
 import com.batuhan.feedback360.model.response.JwtAuthenticationResponse;
 import com.batuhan.feedback360.service.AuthService;
@@ -22,22 +24,32 @@ public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/company/sign-up")
-    public ResponseEntity<?> companySignUp(@RequestBody SignUpRequest request) {
+    public ResponseEntity<?> companySignUp(@RequestBody CompanySignUpRequest request) {
         return ResponseEntity.ok(authService.companySignUp(request));
     }
 
-    @PostMapping("/sign-in")
-    public ResponseEntity<ApiResponse<JwtAuthenticationResponse>> companySignIn(@RequestBody SignInRequest request) {
-        return ResponseEntity.ok(authService.signIn(request));
+    @PostMapping("/invitation")
+    public ResponseEntity<ApiResponse<?>> completeInvitation(@RequestBody UserSignUpRequest request) {
+        return ResponseEntity.ok(authService.completeEmployeeInvitation(request));
     }
 
-    @PostMapping("/employee/invitation")
-    public ResponseEntity<ApiResponse<?>> completeEmployeeInvitation(@RequestBody EmployeeSignUpRequest request) {
-        return ResponseEntity.ok(authService.completeEmployeeInvitation(request));
+    @PostMapping("/sign-in")
+    public ResponseEntity<ApiResponse<JwtAuthenticationResponse>> signIn(@RequestBody SignInRequest request) {
+        return ResponseEntity.ok(authService.signIn(request));
     }
 
     @PostMapping("/refresh")
     public ResponseEntity<ApiResponse<JwtAuthenticationResponse>> refreshToken(@RequestBody RefreshTokenRequest request) {
         return ResponseEntity.ok(authService.refreshToken(request));
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<ApiResponse<Void>> forgotPassword(@RequestBody ForgotPasswordRequest request) {
+        return ResponseEntity.ok(authService.forgotPassword(request));
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<ApiResponse<Void>> resetPassword(@RequestBody ResetPasswordRequest request) {
+        return ResponseEntity.ok(authService.resetPassword(request));
     }
 }

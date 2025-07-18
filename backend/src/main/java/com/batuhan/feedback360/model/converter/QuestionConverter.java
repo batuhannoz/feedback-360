@@ -14,8 +14,7 @@ public class QuestionConverter {
 
         return QuestionResponse.builder()
             .id(question.getId())
-            .question(question.getQuestion())
-            .type(question.getType())
+            .questionText(question.getQuestionText())
             .build();
     }
 }

@@ -1,5 +1,6 @@
 package com.batuhan.feedback360.repository;
 
+import com.batuhan.feedback360.model.entitiy.Company;
 import com.batuhan.feedback360.model.entitiy.EvaluationPeriod;
 import java.util.List;
 import java.util.Optional;
@@ -11,4 +12,8 @@ public interface EvaluationPeriodRepository extends JpaRepository<EvaluationPeri
     List<EvaluationPeriod> findByCompanyId(Integer companyId);
     Optional<EvaluationPeriod> findByIdAndCompanyId(Integer id, Integer companyId);
     boolean existsByIdAndCompanyId(Integer id, Integer companyId);
+
+    List<EvaluationPeriod> findByCompanyOrderByCreatedAtDesc(Company company);
+
+    Optional<EvaluationPeriod> findByIdAndCompany(Integer periodId, Company company);
 }

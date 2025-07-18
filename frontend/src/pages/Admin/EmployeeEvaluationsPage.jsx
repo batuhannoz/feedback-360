@@ -5,7 +5,7 @@ import EvaluationPeriodService from '../../services/evaluationPeriodService';
 import EmployeeService from '../../services/employeeService';
 
 const EmployeeEvaluationsPage = () => {
-    const { id } = useParams(); // Employee ID from URL
+    const { id } = useParams();
     const [employee, setEmployee] = useState(null);
     const [periods, setPeriods] = useState([]);
     const [selectedPeriod, setSelectedPeriod] = useState('');

@@ -12,6 +12,12 @@ public class MessageHandler {
     private final MessageSource messageSource;
 
     public String getMessage(String code, Object... args) {
-        return messageSource.getMessage(code, args, LocaleContextHolder.getLocale());
+        String message = null;
+        try {
+            message = messageSource.getMessage(code, args, LocaleContextHolder.getLocale());
+        } catch (Exception e) {
+            message = code;
+        }
+        return message;
     }
 }

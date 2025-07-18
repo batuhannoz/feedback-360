@@ -9,8 +9,8 @@ import lombok.Data;
 @Builder
 public class ReceivedEvaluationResponse {
     private Integer evaluationId;
-    private EmployeeSimpleResponse evaluator;
-    private EmployeeSimpleResponse evaluated;
+    private UserSimpleResponse evaluator;
+    private UserSimpleResponse evaluated;
     private EvaluationStatus status;
     private LocalDateTime submissionDate;
 }

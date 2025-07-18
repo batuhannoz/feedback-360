@@ -9,7 +9,7 @@ import lombok.Data;
 @Builder
 public class EvaluationTaskResponse {
     private Integer evaluationId;
-    private EmployeeSimpleResponse evaluatedEmployee;
+    private UserSimpleResponse evaluatedEmployee;
     private EvaluationStatus status;
     private LocalDateTime submissionDate;
 }

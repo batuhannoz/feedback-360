@@ -9,11 +9,9 @@ public class AuthenticationPrincipalResolver {
 
     public CustomPrincipal getPrincipal() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-
         if (authentication == null || !authentication.isAuthenticated() || !(authentication.getPrincipal() instanceof CustomPrincipal)) {
             throw new IllegalStateException("User is not authenticated or principal is not of expected type.");
         }
-
         return (CustomPrincipal) authentication.getPrincipal();
     }
 

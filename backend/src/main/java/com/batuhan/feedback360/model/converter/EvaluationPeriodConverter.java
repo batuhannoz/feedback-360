@@ -21,6 +21,7 @@ public class EvaluationPeriodConverter {
             .name(evaluationPeriod.getName())
             .startDate(evaluationPeriod.getStartDate())
             .endDate(evaluationPeriod.getEndDate())
+            .status(evaluationPeriod.getStatus())
             .company(companyConverter.toCompanyResponse(evaluationPeriod.getCompany()))
             .build();
     }

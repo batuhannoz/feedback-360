@@ -1,0 +1,106 @@
+package com.batuhan.feedback360.service;
+
+import com.batuhan.feedback360.config.AuthenticationPrincipalResolver;
+import com.batuhan.feedback360.model.converter.UserConverter;
+import com.batuhan.feedback360.model.entitiy.Company;
+import com.batuhan.feedback360.model.entitiy.User;
+import com.batuhan.feedback360.model.request.UserRequest;
+import com.batuhan.feedback360.model.response.ApiResponse;
+import com.batuhan.feedback360.model.response.UserDetailResponse;
+import com.batuhan.feedback360.repository.CompanyRepository;
+import com.batuhan.feedback360.repository.UserRepository;
+import com.batuhan.feedback360.repository.specification.UserSpecification;
+import com.batuhan.feedback360.util.MessageHandler;
+import jakarta.transaction.Transactional;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
+import lombok.AllArgsConstructor;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.stereotype.Service;
+
+@Service
+@AllArgsConstructor
+public class UserService {
+
+    private final UserRepository userRepository;
+    private final MessageHandler messageHandler;
+    private final AuthenticationPrincipalResolver principalResolver;
+    private final EmailService emailService;
+    private final CompanyRepository companyRepository;
+    private final UserConverter userConverter;
+
+    @Transactional
+    public ApiResponse<User> createUser(UserRequest request) {
+        if (userRepository.findByEmail(request.getEmail()).isEmpty()) {
+            return ApiResponse.failure(messageHandler.getMessage("error.user.emailExists", request.getEmail()));
+        }
+
+        Company company = companyRepository.getReferenceById(principalResolver.getCompanyId());
+        User user = User.builder()
+            .firstName(request.getFirstName())
+            .lastName(request.getLastName())
+            .email(request.getEmail())
+            .company(company)
+            .isAdmin(request.getIsAdmin())
+            .invitationToken(UUID.randomUUID().toString())
+            .isActive(true)
+            .invitationValidityDate(LocalDateTime.now().plusDays(7))
+            .build();
+        emailService.sendInvitationEmail(user.getEmail(), user.getInvitationToken());
+        return ApiResponse.success(userRepository.save(user), "");
+    }
+
+    @Transactional
+    public ApiResponse<UserDetailResponse> updateEmployee(Integer userId, UserRequest request) {
+        Integer companyId = principalResolver.getCompanyId();
+
+        User employee = userRepository.findById(userId).orElse(null);
+        if (employee == null) {
+            return ApiResponse.failure(messageHandler.getMessage("error.employee.notFound", userId));
+        }
+
+        if (!employee.getCompany().getId().equals(companyId)) {
+            return ApiResponse.failure(messageHandler.getMessage("error.employee.noPermissionUpdate"));
+        }
+
+        employee.setFirstName(request.getFirstName());
+        employee.setLastName(request.getLastName());
+        // TODO if email changed send mail with invitation token
+        employee.setEmail(request.getEmail());
+        employee.setIsAdmin(request.getIsAdmin());
+        employee.setIsActive(request.getIsActive());
+
+        User updatedUser = userRepository.save(employee);
+        return ApiResponse.success(userConverter.toUserDetailResponse(updatedUser), "");
+    }
+
+    @Transactional
+    public ApiResponse<List<UserDetailResponse>> getUsers(Boolean active, String name) {
+        Company company = companyRepository.getReferenceById(principalResolver.getCompanyId());
+
+        Specification<User> spec = UserSpecification.filterUsers(Long.valueOf(company.getId()), active, name);
+
+        List<User> users = userRepository.findAll(spec);
+
+        List<UserDetailResponse> userResponses = users.stream()
+            .map(userConverter::toUserDetailResponse)
+            .collect(Collectors.toList());
+
+        return ApiResponse.success(userResponses, "");
+    }
+
+    @Transactional
+    public ApiResponse<UserDetailResponse> getUserById(Integer userId) {
+        Company company = companyRepository.getReferenceById(principalResolver.getCompanyId());
+        User user = userRepository.findById(userId).orElse(null);
+        if (user == null) {
+            return ApiResponse.failure(messageHandler.getMessage("error.employee.notFound", userId));
+        }
+        if (!user.getCompany().getId().equals(company.getId())) {
+            return ApiResponse.failure(messageHandler.getMessage("error.employee.noPermissionView"));
+        }
+        return ApiResponse.success(userConverter.toUserDetailResponse(user), "");
+    }
+}

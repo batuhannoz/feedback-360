@@ -1,6 +1,7 @@
 package com.batuhan.feedback360.model.response;
 
-import java.time.LocalDate;
+import com.batuhan.feedback360.model.enums.PeriodStatus;
+import java.time.LocalDateTime;
 import lombok.Builder;
 import lombok.Data;
 
@@ -9,7 +10,8 @@ import lombok.Data;
 public class EvaluationPeriodResponse {
     private Integer id;
     private String name;
-    private LocalDate startDate;
-    private LocalDate endDate;
+    private LocalDateTime startDate;
+    private LocalDateTime endDate;
+    private PeriodStatus status;
     private CompanyResponse company;
 }

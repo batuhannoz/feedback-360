@@ -10,37 +10,33 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.CreationTimestamp;
 
-@Entity
-@Builder
-@Setter
 @Getter
-@NoArgsConstructor
-@AllArgsConstructor
-@Table(name = "answer")
+@Setter
+@Entity
+@Table(name = "answers")
 public class Answer {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(name = "answer")
-    private String answer;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "assignment_id", nullable = false)
+    private EvaluationAssignment assignment;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "question_id", nullable = false)
     private Question question;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "evaluation_id")
-    private Evaluation evaluation;
+    @Column(nullable = false)
+    private int score;
 
-    @Column(name = "created_at", updatable = false)
-    @CreationTimestamp
-    private LocalDateTime createdAt;
+    @Column
+    private String answerText;
+
+    @Column(name = "submitted_at", updatable = false)
+    private LocalDateTime submittedAt = LocalDateTime.now();
 }

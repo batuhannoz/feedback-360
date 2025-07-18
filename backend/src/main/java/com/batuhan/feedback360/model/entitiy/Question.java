@@ -1,10 +1,7 @@
 package com.batuhan.feedback360.model.entitiy;
 
-import com.batuhan.feedback360.model.enums.QuestionType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -32,19 +29,16 @@ public class Question {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(name = "test",  nullable = false)
-    private String question;
-
-    @Column(name = "type", nullable = false)
-    @Enumerated(EnumType.STRING)
-    private QuestionType type = QuestionType.SCALE_1_TO_5;
+    @Column(name = "question_text", nullable = false, columnDefinition = "TEXT")
+    private String questionText;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "company_id")
     private Company company;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    private EvaluationTemplate evaluationTemplates;
+    @JoinColumn(name = "competency_id", nullable = false)
+    private Competency competency;
 
     @Column(name = "created_at", updatable = false)
     @CreationTimestamp

@@ -6,7 +6,7 @@ import lombok.Data;
 @Data
 @Builder
 public class ParticipantCompletionStatusResponse {
-    private EmployeeSimpleResponse participant;
+    private UserSimpleResponse participant;
     private int totalEvaluationsAssigned;
     private int completedEvaluations;
     private double completionPercentage;

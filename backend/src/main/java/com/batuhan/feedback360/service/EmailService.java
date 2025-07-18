@@ -32,4 +32,10 @@ public class EmailService {
         message.setText(body);
         mailSender.send(message);
     }
+
+    public void sendPasswordResetEmail(com.batuhan.feedback360.model.entitiy.User user, String token) {
+        String passwordResetLink = invitationBaseUrl + "?token=" + token + "&email=" + user.getEmail();
+        String subject = messageHandler.getMessage("email.passwordReset.subject");
+        String body = messageHandler.getMessage("email.passwordReset.body", passwordResetLink);
+    }
 }
