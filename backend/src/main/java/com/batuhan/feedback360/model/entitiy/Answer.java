@@ -10,13 +10,20 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
 
 @Getter
 @Setter
 @Entity
-@Table(name = "answers")
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@Table(name = "answer")
 public class Answer {
 
     @Id
@@ -38,5 +45,6 @@ public class Answer {
     private String answerText;
 
     @Column(name = "submitted_at", updatable = false)
-    private LocalDateTime submittedAt = LocalDateTime.now();
+    @CreationTimestamp
+    private LocalDateTime submittedAt;
 }

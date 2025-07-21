@@ -19,7 +19,6 @@ public class EvaluatorConverter {
         return EvaluatorResponse.builder()
             .id(evaluator.getId())
             .name(evaluator.getName())
-            .period(evaluationPeriodConverter.toEvaluationPeriodResponse(evaluator.getPeriod()))
             .evaluatorType(evaluator.getEvaluatorType())
             .build();
     }

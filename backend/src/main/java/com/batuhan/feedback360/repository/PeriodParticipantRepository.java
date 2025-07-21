@@ -11,4 +11,8 @@ public interface PeriodParticipantRepository extends JpaRepository<PeriodPartici
     boolean existsByPeriod_IdAndEvaluatedUser_Id(Integer periodId, Integer userId);
 
     Optional<PeriodParticipant> findByPeriod_IdAndEvaluatedUser_Id(Integer periodId, Integer userId);
+
+    long countByPeriod_Id(Integer periodId);
+
+    List<PeriodParticipant> findAllByEvaluatedUser_Id(Integer evaluatedUserId);
 }
