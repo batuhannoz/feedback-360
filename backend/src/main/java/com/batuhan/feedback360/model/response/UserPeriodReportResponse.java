@@ -14,4 +14,5 @@ public class UserPeriodReportResponse {
     private BigDecimal competencyWeightedScore;
     private BigDecimal finalWeightedScore;
     private List<ScoreByEvaluatorResponse> scoresByEvaluator;
+    private List<CompetencyScoreDetailResponse> competencyScores;
 }
