@@ -2,6 +2,7 @@ package com.batuhan.feedback360.controller;
 
 import com.batuhan.feedback360.model.request.AssignCompetencyEvaluatorsRequest;
 import com.batuhan.feedback360.model.request.CompetencyRequest;
+import com.batuhan.feedback360.model.request.SetCompetencyEvaluatorWeightsRequest;
 import com.batuhan.feedback360.model.request.SetCompetencyWeightsRequest;
 import com.batuhan.feedback360.model.response.ApiResponse;
 import com.batuhan.feedback360.model.response.CompetencyEvaluatorPermissionResponse;
@@ -12,6 +13,7 @@ import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -23,12 +25,16 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v1/period/{periodId}/competency")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('ADMIN')")
 public class PeriodCompetencyController {
 
     private final PeriodCompetencyService periodCompetencyService;
 
     @PostMapping
-    public ResponseEntity<ApiResponse<?>> addCompetencyToPeriod(@PathVariable Integer periodId, @RequestBody CompetencyRequest request) {
+    public ResponseEntity<ApiResponse<CompetencyResponse>> addCompetencyToPeriod(
+        @PathVariable Integer periodId,
+        @RequestBody CompetencyRequest request
+    ) {
         return ResponseEntity.ok(periodCompetencyService.addCompetencyToPeriod(periodId, request));
     }
 
@@ -60,6 +66,28 @@ public class PeriodCompetencyController {
         @RequestBody AssignCompetencyEvaluatorsRequest request
     ) {
         return ResponseEntity.ok(periodCompetencyService.assignEvaluatorsToCompetency(periodId, competencyId, request));
+    }
+
+    @GetMapping("/{competencyId}/evaluator")
+    public ResponseEntity<ApiResponse<List<CompetencyEvaluatorPermissionResponse>>> getCompetencyEvaluatorPermissions(
+        @PathVariable Integer periodId,
+        @PathVariable Integer competencyId
+    ) {
+        return ResponseEntity.ok(periodCompetencyService.getCompetencyEvaluatorPermissions(periodId, competencyId));
+    }
+
+    @PostMapping("/{competencyId}/evaluator/weight")
+    public ResponseEntity<ApiResponse<List<CompetencyEvaluatorPermissionResponse>>> setCompetencyEvaluatorWeights(
+        @PathVariable Integer periodId,
+        @PathVariable Integer competencyId,
+        @Valid @RequestBody SetCompetencyEvaluatorWeightsRequest request
+    ) {
+        return ResponseEntity.ok(periodCompetencyService.setCompetencyEvaluatorWeights(periodId, competencyId, request));
+    }
+
+    @GetMapping("/weight")
+    public ResponseEntity<ApiResponse<List<CompetencyWeightResponse>>> getCompetencyWeights(@PathVariable Integer periodId) {
+        return ResponseEntity.ok(periodCompetencyService.getCompetenciesWithWeights(periodId));
     }
 
     @PostMapping("/weight")

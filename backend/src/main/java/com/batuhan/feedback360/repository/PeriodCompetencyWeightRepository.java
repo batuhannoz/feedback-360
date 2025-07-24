@@ -11,4 +11,6 @@ public interface PeriodCompetencyWeightRepository extends JpaRepository<PeriodCo
     Optional<PeriodCompetencyWeight> findByPeriod_IdAndCompetency_Id(Integer periodId, Integer competencyId);
 
     void deleteByPeriod_IdAndCompetency_Id(Integer periodId, Integer competencyId);
+
+    void deleteAllByPeriodId(Integer periodId);
 }

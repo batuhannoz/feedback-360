@@ -15,4 +15,6 @@ public interface PeriodParticipantRepository extends JpaRepository<PeriodPartici
     long countByPeriod_Id(Integer periodId);
 
     List<PeriodParticipant> findAllByEvaluatedUser_Id(Integer evaluatedUserId);
+
+    void deleteAllByPeriodId(Integer periodId);
 }

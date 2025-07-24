@@ -5,10 +5,12 @@ import com.batuhan.feedback360.model.response.AnswerResponse;
 import com.batuhan.feedback360.model.response.ApiResponse;
 import com.batuhan.feedback360.model.response.UserAssignmentsResponse;
 import com.batuhan.feedback360.model.response.UserDetailResponse;
+import com.batuhan.feedback360.model.response.UserResponse;
 import com.batuhan.feedback360.service.UserService;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -21,6 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v1/user")
 @RequiredArgsConstructor
+@PreAuthorize("hasRole('ADMIN')")
 public class UserController {
 
     private final UserService userService;
@@ -36,7 +39,7 @@ public class UserController {
     }
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<UserDetailResponse>>> getUsers(
+    public ResponseEntity<ApiResponse<List<UserResponse>>> getUsers(
         @RequestParam(required = false) Boolean active,
         @RequestParam(required = false) String name
     ) {

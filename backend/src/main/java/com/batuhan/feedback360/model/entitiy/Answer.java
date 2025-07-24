@@ -42,7 +42,7 @@ public class Answer {
     private int score;
 
     @Column
-    private String answerText;
+    private String comment;
 
     @Column(name = "submitted_at", updatable = false)
     @CreationTimestamp

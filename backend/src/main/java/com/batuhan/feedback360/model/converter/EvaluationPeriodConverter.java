@@ -18,7 +18,9 @@ public class EvaluationPeriodConverter {
 
         return EvaluationPeriodResponse.builder()
             .id(evaluationPeriod.getId())
-            .name(evaluationPeriod.getName())
+            .internalPeriodName(evaluationPeriod.getInternalPeriodName())
+            .periodName(evaluationPeriod.getPeriodName())
+            .evaluationName(evaluationPeriod.getEvaluationName())
             .startDate(evaluationPeriod.getStartDate())
             .endDate(evaluationPeriod.getEndDate())
             .status(evaluationPeriod.getStatus())

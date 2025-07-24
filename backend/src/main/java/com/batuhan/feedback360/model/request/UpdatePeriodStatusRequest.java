@@ -6,7 +6,6 @@ import lombok.Data;
 
 @Data
 public class UpdatePeriodStatusRequest {
-
     @NotNull(message = "Status cannot be null")
     private PeriodStatus status;
 }

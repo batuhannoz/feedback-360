@@ -33,12 +33,12 @@ public class Competency {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(nullable = false)
-    private String title;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "company_id", nullable = false)
     private Company company;
+
+    @Column(nullable = false)
+    private String title;
 
     @Column(name = "description")
     private String description;

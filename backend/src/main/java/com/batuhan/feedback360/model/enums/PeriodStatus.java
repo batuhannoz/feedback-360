@@ -4,4 +4,5 @@ public enum PeriodStatus {
     NOT_STARTED,
     IN_PROGRESS,
     COMPLETED,
+    DELETED
 }

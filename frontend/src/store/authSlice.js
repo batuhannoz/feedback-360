@@ -6,30 +6,30 @@ const initialState = {
     accessToken: null,
     refreshToken: null,
     isAuthenticated: false,
+    role: null,
 };
 
 const authSlice = createSlice({
     name: 'auth',
     initialState,
     reducers: {
-        loginSuccess: (state, action) => {
-            const { accessToken, refreshToken } = action.payload;
-            state.accessToken = accessToken;
-            state.refreshToken = refreshToken;
+        loginSuccess(state, action) {
+            state.token = action.payload.token;
             state.isAuthenticated = true;
-
-            const decodedToken = jwtDecode(accessToken);
-            state.user = {
-                id: decodedToken.user_id,
-                email: decodedToken.sub,
-                companyId: decodedToken.company_id,
-                roles: [decodedToken.user_type],
-            };
+            const decodedToken = jwtDecode(action.payload.accessToken);
+            state.user = decodedToken.sub;
+            state.accessToken = action.payload.accessToken;
+            state.refreshToken = action.payload.refreshToken;
+            state.role = decodedToken.role;
+            console.log(state.role)
+            localStorage.setItem('accessToken', action.payload.accessToken);
         },
-        logout: (state) => {
-            state.accessToken = null;
-            state.refreshToken = null;
+        logout(state) {
+            state.user = null;
+            state.token = null;
             state.isAuthenticated = false;
+            state.role = null;
+            localStorage.removeItem('accessToken');
         },
     },
 });

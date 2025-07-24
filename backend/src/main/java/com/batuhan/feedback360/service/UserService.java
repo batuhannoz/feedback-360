@@ -17,6 +17,7 @@ import com.batuhan.feedback360.model.response.ApiResponse;
 import com.batuhan.feedback360.model.response.AssignmentResponse;
 import com.batuhan.feedback360.model.response.UserAssignmentsResponse;
 import com.batuhan.feedback360.model.response.UserDetailResponse;
+import com.batuhan.feedback360.model.response.UserResponse;
 import com.batuhan.feedback360.repository.AnswerRepository;
 import com.batuhan.feedback360.repository.CompanyRepository;
 import com.batuhan.feedback360.repository.CompetencyEvaluatorPermissionRepository;
@@ -85,37 +86,55 @@ public class UserService {
     @Transactional
     public ApiResponse<UserDetailResponse> updateEmployee(Integer userId, UserRequest request) {
         Integer companyId = principalResolver.getCompanyId();
-
-        User employee = userRepository.findById(userId).orElse(null);
-        if (employee == null) {
+        Optional<User> employeeOpt = userRepository.findById(userId);
+        if (employeeOpt.isEmpty()) {
             return ApiResponse.failure(messageHandler.getMessage("error.employee.not-found", userId));
         }
+        User employee = employeeOpt.get();
 
         if (!employee.getCompany().getId().equals(companyId)) {
             return ApiResponse.failure(messageHandler.getMessage("error.employee.no-permission-update"));
         }
 
-        employee.setFirstName(request.getFirstName());
-        employee.setLastName(request.getLastName());
-        // TODO if email changed send mail with invitation token
-        employee.setEmail(request.getEmail());
-        employee.setIsAdmin(request.getIsAdmin());
-        employee.setIsActive(request.getIsActive());
+        if (request.getFirstName() != null) {
+            employee.setFirstName(request.getFirstName());
+        }
+        if (request.getLastName() != null) {
+            employee.setLastName(request.getLastName());
+        }
+        if (request.getIsAdmin() != null) {
+            employee.setIsAdmin(request.getIsAdmin());
+        }
+        if (request.getIsActive() != null) {
+            employee.setIsActive(request.getIsActive());
+        }
+
+        String newEmail = request.getEmail();
+        if (newEmail != null && !newEmail.equalsIgnoreCase(employee.getEmail())) {
+            if (userRepository.findByEmail(newEmail).isPresent()) {
+                return ApiResponse.failure(messageHandler.getMessage("error.user.email-exists", newEmail));
+            }
+            employee.setEmail(newEmail);
+            String newInvitationToken = UUID.randomUUID().toString();
+            employee.setInvitationToken(newInvitationToken);
+            employee.setInvitationValidityDate(LocalDateTime.now().plusDays(7));
+            emailService.sendInvitationEmail(employee.getEmail(), employee.getInvitationToken());
+        }
 
         User updatedUser = userRepository.save(employee);
-        return ApiResponse.success(userConverter.toUserDetailResponse(updatedUser), "");
+        return ApiResponse.success(userConverter.toUserDetailResponse(updatedUser), messageHandler.getMessage("user.update.success"));
     }
 
     @Transactional
-    public ApiResponse<List<UserDetailResponse>> getUsers(Boolean active, String name) {
+    public ApiResponse<List<UserResponse>> getUsers(Boolean active, String name) {
         Company company = companyRepository.getReferenceById(principalResolver.getCompanyId());
 
         Specification<User> spec = UserSpecification.filterUsers(Long.valueOf(company.getId()), active, name);
 
         List<User> users = userRepository.findAll(spec);
 
-        List<UserDetailResponse> userResponses = users.stream()
-            .map(userConverter::toUserDetailResponse)
+        List<UserResponse> userResponses = users.stream()
+            .map(userConverter::toUserResponse)
             .collect(Collectors.toList());
 
         return ApiResponse.success(userResponses, "");

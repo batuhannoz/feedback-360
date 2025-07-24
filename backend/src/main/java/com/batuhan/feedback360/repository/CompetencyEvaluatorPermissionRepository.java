@@ -19,4 +19,5 @@ public interface CompetencyEvaluatorPermissionRepository extends JpaRepository<C
 
     List<CompetencyEvaluatorPermission> findAllByPeriodId(Integer periodId);
 
+    void deleteAllByPeriodId(Integer periodId);
 }

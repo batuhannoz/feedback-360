@@ -190,11 +190,29 @@ public class UserEvaluationService {
             return ApiResponse.failure(messageHandler.getMessage("evaluation.question.mismatch"));
         }
 
-        answerRepository.deleteAllByAssignmentIn(assignments);
-        answerRepository.flush();
-
         Map<Integer, Question> questionMap = permittedQuestions.stream()
             .collect(Collectors.toMap(Question::getId, q -> q));
+
+        for (AnswerSubmissionRequest req : answerRequests) {
+            Question question = questionMap.get(req.getQuestionId());
+
+            if (question.getHiddenScores().contains(req.getScore())) {
+                return ApiResponse.failure(
+                    messageHandler.getMessage("evaluation.hidden.score.not-allowed", req.getScore(), question.getId())
+                );
+            }
+
+            boolean isCommentRequired = question.getScoresRequiringComment().contains(req.getScore());
+            boolean isCommentMissing = (req.getAnswerText() == null || req.getAnswerText().isBlank());
+
+            if (isCommentRequired && isCommentMissing) {
+                return ApiResponse.failure(
+                    messageHandler.getMessage("evaluation.comment.required", req.getScore(), question.getId())
+                );
+            }
+        }
+        answerRepository.deleteAllByAssignmentIn(assignments);
+        answerRepository.flush();
 
         Map<Integer, List<EvaluationAssignment>> competencyToAssignmentsMap = new HashMap<>();
         Map<Integer, EvaluationAssignment> roleIdToAssignmentMap = assignments.stream()
@@ -217,7 +235,7 @@ public class UserEvaluationService {
                         .assignment(assignment)
                         .question(question)
                         .score(req.getScore())
-                        .answerText(req.getAnswerText())
+                        .comment(req.getAnswerText())
                         .build());
                 }
             }

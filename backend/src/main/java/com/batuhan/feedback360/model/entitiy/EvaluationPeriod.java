@@ -3,6 +3,8 @@ package com.batuhan.feedback360.model.entitiy;
 import com.batuhan.feedback360.model.enums.PeriodStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -34,8 +36,14 @@ public class EvaluationPeriod {
     @JoinColumn(name = "company_id", nullable = false)
     private Company company;
 
-    @Column(name = "name", nullable = false)
-    private String name;
+    @Column(name = "period_name")
+    private String periodName;
+
+    @Column(name = "internal_period_name")
+    private String internalPeriodName;
+
+    @Column(name = "evaluation_name", nullable = false)
+    private String evaluationName;
 
     @Column(name = "start_date", nullable = false)
     private LocalDateTime startDate;
@@ -44,6 +52,7 @@ public class EvaluationPeriod {
     private LocalDateTime endDate;
 
     @Column(name = "status")
+    @Enumerated(EnumType.STRING)
     private PeriodStatus status;
 
     @Column(name = "created_at", nullable = false, updatable = false)

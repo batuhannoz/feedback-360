@@ -17,11 +17,11 @@ public class UserSpecification {
                 predicates.add(criteriaBuilder.equal(root.get("company").get("id"), companyId));
             }
             if (active != null) {
-                predicates.add(criteriaBuilder.equal(root.get("active"), active));
+                predicates.add(criteriaBuilder.equal(root.get("isActive"), active));
             }
             if (StringUtils.hasText(name)) {
                 predicates.add(criteriaBuilder.like(
-                    criteriaBuilder.lower(root.get("name")),
+                    criteriaBuilder.lower(root.get("firstName")),
                     "%" + name.toLowerCase() + "%"
                 ));
             }

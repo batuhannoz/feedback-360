@@ -1,6 +1,8 @@
 package com.batuhan.feedback360.model.entitiy;
 
+import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -10,6 +12,8 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -39,6 +43,18 @@ public class Question {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "competency_id", nullable = false)
     private Competency competency;
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "question_hidden_scores", joinColumns = @JoinColumn(name = "question_id"))
+    @Column(name = "score")
+    @Builder.Default
+    private Set<Integer> hiddenScores = new HashSet<>();
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "question_scores_requiring_comment", joinColumns = @JoinColumn(name = "question_id"))
+    @Column(name = "score")
+    @Builder.Default
+    private Set<Integer> scoresRequiringComment = new HashSet<>();
 
     @Column(name = "created_at", updatable = false)
     @CreationTimestamp

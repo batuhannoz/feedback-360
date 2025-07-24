@@ -1,10 +1,11 @@
 package com.batuhan.feedback360.model.request;
 
-import jakarta.validation.constraints.NotBlank;
+import java.util.Set;
 import lombok.Data;
 
 @Data
 public class QuestionRequest {
-    @NotBlank(message = "Question text cannot be blank")
     private String questionText;
+    private Set<Integer> hiddenScores;
+    private Set<Integer> scoresRequiringComment;
 }

@@ -54,6 +54,8 @@ public class CompetencyQuestionService {
             .questionText(request.getQuestionText())
             .competency(competency)
             .company(competency.getCompany())
+            .hiddenScores(request.getHiddenScores())
+            .scoresRequiringComment(request.getScoresRequiringComment())
             .build();
 
         Question savedQuestion = questionRepository.save(newQuestion);
@@ -71,6 +73,14 @@ public class CompetencyQuestionService {
         return questionRepository.findByIdAndCompetency_Id(questionId, competencyId)
             .map(questionToUpdate -> {
                 questionToUpdate.setQuestionText(request.getQuestionText());
+                questionToUpdate.getHiddenScores().clear();
+                if (request.getHiddenScores() != null) {
+                    questionToUpdate.getHiddenScores().addAll(request.getHiddenScores());
+                }
+                questionToUpdate.getScoresRequiringComment().clear();
+                if (request.getScoresRequiringComment() != null) {
+                    questionToUpdate.getScoresRequiringComment().addAll(request.getScoresRequiringComment());
+                }
                 Question updatedQuestion = questionRepository.save(questionToUpdate);
                 return ApiResponse.success(
                     questionConverter.toQuestionResponse(updatedQuestion),

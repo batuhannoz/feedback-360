@@ -3,6 +3,7 @@ package com.batuhan.feedback360.model.converter;
 import com.batuhan.feedback360.model.entitiy.User;
 import com.batuhan.feedback360.model.response.ParticipantResponse;
 import com.batuhan.feedback360.model.response.UserDetailResponse;
+import com.batuhan.feedback360.model.response.UserResponse;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -31,6 +32,21 @@ public class UserConverter {
             .firstName(user.getFirstName())
             .lastName(user.getLastName())
             .email(user.getEmail())
+            .build();
+    }
+
+    public UserResponse toUserResponse(User user) {
+        if (user == null) {
+            return null;
+        }
+
+        return UserResponse.builder()
+            .id(user.getId())
+            .firstName(user.getFirstName())
+            .lastName(user.getLastName())
+            .email(user.getEmail())
+            .isActive(user.getIsActive())
+            .isAdmin(user.getIsAdmin())
             .build();
     }
 }

@@ -6,7 +6,9 @@ import lombok.Data;
 
 @Data
 public class EvaluationPeriodRequest {
-    private String name;
+    private String periodName;
+    private String internalPeriodName;
+    private String evaluationName;
     private LocalDateTime startDate;
     private LocalDateTime endDate;
     private PeriodStatus status;

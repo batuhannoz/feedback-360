@@ -10,8 +10,10 @@ import com.batuhan.feedback360.model.entitiy.EvaluationPeriod;
 import com.batuhan.feedback360.model.entitiy.Evaluator;
 import com.batuhan.feedback360.model.entitiy.PeriodCompetencyWeight;
 import com.batuhan.feedback360.model.request.AssignCompetencyEvaluatorsRequest;
+import com.batuhan.feedback360.model.request.CompetencyEvaluatorWeight;
 import com.batuhan.feedback360.model.request.CompetencyRequest;
 import com.batuhan.feedback360.model.request.CompetencyWeightRequest;
+import com.batuhan.feedback360.model.request.SetCompetencyEvaluatorWeightsRequest;
 import com.batuhan.feedback360.model.request.SetCompetencyWeightsRequest;
 import com.batuhan.feedback360.model.response.ApiResponse;
 import com.batuhan.feedback360.model.response.CompetencyEvaluatorPermissionResponse;
@@ -30,6 +32,7 @@ import java.math.RoundingMode;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -116,9 +119,7 @@ public class PeriodCompetencyService {
         if (!evaluationPeriodRepository.existsByIdAndCompanyId(periodId, principalResolver.getCompanyId())) {
             return ApiResponse.failure(messageHandler.getMessage("evaluation-period.not-found"));
         }
-
         List<PeriodCompetencyWeight> periodCompetencyWeights = periodCompetencyWeightRepository.findAllByPeriod_Id(periodId);
-
         return ApiResponse.success(
             periodCompetencyWeights.stream().map(p -> competencyConverter.toCompetencyResponse(p.getCompetency())).toList(),
             messageHandler.getMessage("competency.list.success")
@@ -194,6 +195,75 @@ public class PeriodCompetencyService {
             savedPermissions.stream().map(competencyEvaluatorPermissionConverter::toResponse).toList(),
             messageHandler.getMessage("competency.evaluator.assign.success")
         );
+    }
+
+    public ApiResponse<List<CompetencyWeightResponse>> getCompetenciesWithWeights(Integer periodId) {
+        if (!evaluationPeriodRepository.existsByIdAndCompanyId(periodId, principalResolver.getCompanyId())) {
+            return ApiResponse.failure(messageHandler.getMessage("evaluation-period.no-permission-view"));
+        }
+        List<PeriodCompetencyWeight> periodWeights = periodCompetencyWeightRepository.findAllByPeriod_Id(periodId);
+        List<CompetencyWeightResponse> response = periodWeights.stream()
+            .map(pcw -> CompetencyWeightResponse.builder()
+                .competencyId(pcw.getCompetency().getId())
+                .competencyTitle(pcw.getCompetency().getTitle())
+                .weight(pcw.getWeight())
+                .build()).toList();
+
+        return ApiResponse.success(response, messageHandler.getMessage("competency.weight.get.success"));
+    }
+
+    public ApiResponse<List<CompetencyEvaluatorPermissionResponse>> getCompetencyEvaluatorPermissions(Integer periodId, Integer competencyId) {
+        if (validatePeriodAndCompetency(periodId, competencyId).isEmpty()) {
+            return ApiResponse.failure(messageHandler.getMessage("competency.not-found-in-period", competencyId));
+        }
+        List<CompetencyEvaluatorPermission> permissions = competencyEvaluatorPermissionRepository.findByPeriod_IdAndCompetency_Id(periodId, competencyId);
+        List<CompetencyEvaluatorPermissionResponse> response = permissions.stream()
+            .map(competencyEvaluatorPermissionConverter::toResponse)
+            .collect(Collectors.toList());
+
+        return ApiResponse.success(response, messageHandler.getMessage("competency.evaluator.permission.get.success"));
+    }
+
+    @Transactional
+    public ApiResponse<List<CompetencyEvaluatorPermissionResponse>> setCompetencyEvaluatorWeights(
+        Integer periodId,
+        Integer competencyId,
+        SetCompetencyEvaluatorWeightsRequest request
+    ) {
+        if (validatePeriodAndCompetency(periodId, competencyId).isEmpty()) {
+            return ApiResponse.failure(messageHandler.getMessage("competency.not-found-in-period", competencyId));
+        }
+        List<CompetencyEvaluatorPermission> permissions = competencyEvaluatorPermissionRepository.findByPeriod_IdAndCompetency_Id(periodId, competencyId);
+        if (permissions.isEmpty()) {
+            return ApiResponse.failure(messageHandler.getMessage("competency.evaluator.not-assigned"));
+        }
+        BigDecimal totalWeight = request.getWeights().stream().map(CompetencyEvaluatorWeight::getWeight).reduce(BigDecimal.ZERO, BigDecimal::add);
+        if (totalWeight.compareTo(new BigDecimal("100.00")) != 0) {
+            return ApiResponse.failure(messageHandler.getMessage("competency.evaluator.weight.sum.invalid"));
+        }
+
+        Map<Integer, CompetencyEvaluatorPermission> permissionMap = permissions.stream()
+            .collect(Collectors.toMap(p -> p.getEvaluator().getId(), p -> p));
+
+        Set<Integer> assignedEvaluatorIds = permissionMap.keySet();
+        Set<Integer> requestEvaluatorIds = request.getWeights().stream().map(CompetencyEvaluatorWeight::getEvaluatorId).collect(Collectors.toSet());
+
+        if (!assignedEvaluatorIds.equals(requestEvaluatorIds)) {
+            return ApiResponse.failure(messageHandler.getMessage("competency.evaluator.assignment.mismatch"));
+        }
+
+        request.getWeights().forEach(dto -> {
+            CompetencyEvaluatorPermission permission = permissionMap.get(dto.getEvaluatorId());
+            permission.setWeight(dto.getWeight());
+        });
+
+        List<CompetencyEvaluatorPermission> updatedPermissions = competencyEvaluatorPermissionRepository.saveAll(permissionMap.values());
+
+        List<CompetencyEvaluatorPermissionResponse> response = updatedPermissions.stream()
+            .map(competencyEvaluatorPermissionConverter::toResponse)
+            .collect(Collectors.toList());
+
+        return ApiResponse.success(response, messageHandler.getMessage("competency.evaluator.weight.update.success"));
     }
 
     @Transactional

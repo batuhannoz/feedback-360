@@ -9,7 +9,9 @@ import lombok.Data;
 @Builder
 public class EvaluationPeriodResponse {
     private Integer id;
-    private String name;
+    private String periodName;
+    private String internalPeriodName;
+    private String evaluationName;
     private LocalDateTime startDate;
     private LocalDateTime endDate;
     private PeriodStatus status;

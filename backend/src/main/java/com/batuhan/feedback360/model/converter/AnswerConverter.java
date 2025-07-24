@@ -16,7 +16,7 @@ public class AnswerConverter {
             .questionId(answer.getQuestion().getId())
             .questionText(answer.getQuestion().getQuestionText())
             .score(answer.getScore())
-            .answerText(answer.getAnswerText())
+            .answerText(answer.getComment())
             .submittedAt(answer.getSubmittedAt())
             .build();
     }
