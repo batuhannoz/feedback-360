@@ -54,7 +54,10 @@ const ParticipantsPage = () => {
 
         const columnOrder = ['available', ...evalTypes.map(t => t.id)];
 
-        const selfAssignment = existingAssignments.find(a => a.evaluatorUser.id === currentParticipant?.id && a.evaluatorType === 'SELF');
+        const selfAssignment = existingAssignments.find(
+            a => a.evaluatorUser.id === currentParticipant?.id && a.evaluator.evaluatorType === 'SELF'
+        );
+        console.log(currentParticipant.id)
         setIsSelfEvaluation(!!selfAssignment);
 
         setDndState({ users, columns, columnOrder });
