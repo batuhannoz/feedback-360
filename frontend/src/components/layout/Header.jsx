@@ -1,15 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { FiChevronDown, FiUser, FiLogOut } from 'react-icons/fi';
 import { fetchPeriods, setSelectedPeriod } from '../../store/periodSlice';
 import { logout } from '../../store/authSlice';
+import { cn } from '../../lib/utils';
 
 const Header = () => {
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const [userMenuOpen, setUserMenuOpen] = useState(false);
     const dispatch = useDispatch();
     const navigate = useNavigate();
+    const location = useLocation();
     const { periods, selectedPeriod, loading, error } = useSelector((state) => state.period);
     const { user } = useSelector((state) => state.auth);
 
@@ -49,12 +51,42 @@ const Header = () => {
                         </div>
                     )}
                 </div>
-                <nav className="ml-6 space-x-4 hidden md:flex">
-                    <NavLink to={`/dashboard/evaluations`} className="text-gray-600 hover:text-gray-900">Değerlendirmeler</NavLink>
-                    <NavLink to={`/dashboard/evaluators`} className="text-gray-600 hover:text-gray-900">Kaynaklar</NavLink>
-                    <NavLink to={`/dashboard/participants`} className="text-gray-600 hover:text-gray-900">Katılımcılar</NavLink>
-                    <NavLink to={`/dashboard/competencies`} className="text-gray-600 hover:text-gray-900">Yetkinlikler</NavLink>
-                    <NavLink to={`/dashboard/templates`} className="text-gray-600 hover:text-gray-900">Şablonlar</NavLink>
+                <nav className="ml-6 items-center hidden md:flex">
+                    {[
+                        { to: '/dashboard/evaluators', label: '1. Kaynaklar' },
+                        { to: '/dashboard/participants', label: '2. Katılımcılar' },
+                        { to: '/dashboard/competencies', label: '3. Yetkinlikler' },
+                        { to: '/dashboard/source-weights', label: '4. Kaynak Ağırlıkları', requiresPeriod: true },
+                        { to: '/dashboard/start-period', label: '5. Dönemi Başlat', requiresPeriod: true },
+                    ].map((item, index, arr) => {
+                        const isActive = location.pathname === item.to;
+                        const isDisabled = item.requiresPeriod && !selectedPeriod;
+
+                        return (
+                            <React.Fragment key={item.to}>
+                                <NavLink
+                                    to={isDisabled ? '#' : item.to}
+                                    className={cn(
+                                        "flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium",
+                                        isActive ? "bg-gray-100 text-gray-900" : "text-gray-500 hover:bg-gray-100 hover:text-gray-900",
+                                        isDisabled ? "cursor-not-allowed opacity-50" : ""
+                                    )}
+                                    onClick={(e) => isDisabled && e.preventDefault()}
+                                >
+                                    <div className={cn(
+                                        "flex h-6 w-6 items-center justify-center rounded-full text-xs",
+                                        isActive ? "bg-black text-white" : "bg-gray-200 text-gray-600"
+                                    )}>
+                                        {index + 1}
+                                    </div>
+                                    <span>{item.label.split('. ')[1]}</span>
+                                </NavLink>
+                                {index < arr.length - 1 && (
+                                    <div className="h-6 w-px bg-gray-200 mx-2" />
+                                )}
+                            </React.Fragment>
+                        );
+                    })}
                 </nav>
             </div>
 

@@ -3,9 +3,6 @@ package com.batuhan.feedback360.service;
 import com.batuhan.feedback360.config.AuthenticationPrincipalResolver;
 import com.batuhan.feedback360.model.converter.AnswerConverter;
 import com.batuhan.feedback360.model.converter.AssignmentConverter;
-import com.batuhan.feedback360.model.converter.CompetencyConverter;
-import com.batuhan.feedback360.model.converter.EvaluationPeriodConverter;
-import com.batuhan.feedback360.model.converter.QuestionConverter;
 import com.batuhan.feedback360.model.converter.UserConverter;
 import com.batuhan.feedback360.model.entitiy.Answer;
 import com.batuhan.feedback360.model.entitiy.Company;
@@ -16,15 +13,11 @@ import com.batuhan.feedback360.model.response.AnswerResponse;
 import com.batuhan.feedback360.model.response.ApiResponse;
 import com.batuhan.feedback360.model.response.AssignmentResponse;
 import com.batuhan.feedback360.model.response.UserAssignmentsResponse;
-import com.batuhan.feedback360.model.response.UserDetailResponse;
 import com.batuhan.feedback360.model.response.UserResponse;
 import com.batuhan.feedback360.repository.AnswerRepository;
 import com.batuhan.feedback360.repository.CompanyRepository;
-import com.batuhan.feedback360.repository.CompetencyEvaluatorPermissionRepository;
 import com.batuhan.feedback360.repository.EvaluationAssignmentRepository;
 import com.batuhan.feedback360.repository.EvaluationPeriodRepository;
-import com.batuhan.feedback360.repository.PeriodParticipantRepository;
-import com.batuhan.feedback360.repository.QuestionRepository;
 import com.batuhan.feedback360.repository.UserRepository;
 import com.batuhan.feedback360.repository.specification.UserSpecification;
 import com.batuhan.feedback360.util.MessageHandler;
@@ -48,21 +41,14 @@ public class UserService {
     private final EmailService emailService;
     private final CompanyRepository companyRepository;
     private final UserConverter userConverter;
-    private final EvaluationPeriodConverter evaluationPeriodConverter;
-    private final PeriodParticipantRepository periodParticipantRepository;
     private final EvaluationAssignmentRepository evaluationAssignmentRepository;
-    private final CompetencyConverter competencyConverter;
-    private final QuestionRepository questionRepository;
-    private final CompetencyEvaluatorPermissionRepository competencyEvaluatorPermissionRepository;
-    private final EvaluationPeriodRepository evaluationPeriodRepository;
-    private final QuestionConverter questionConverter;
     private final AnswerRepository answerRepository;
     private final AnswerConverter answerConverter;
     private final AssignmentConverter assignmentConverter;
     private final EvaluationPeriodRepository periodRepository;
 
     @Transactional
-    public ApiResponse<UserDetailResponse> createUser(UserRequest request) {
+    public ApiResponse<UserResponse> createUser(UserRequest request) {
         if (userRepository.findByEmail(request.getEmail()).isPresent()) {
             return ApiResponse.failure(messageHandler.getMessage("error.user.email-exists", request.getEmail()));
         }
@@ -75,16 +61,17 @@ public class UserService {
             .company(company)
             .isAdmin(request.getIsAdmin())
             .invitationToken(UUID.randomUUID().toString())
+            .role(request.getRole())
             .isActive(true)
             .invitationValidityDate(LocalDateTime.now().plusDays(7))
             .build();
         emailService.sendInvitationEmail(user.getEmail(), user.getInvitationToken());
         userRepository.save(user);
-        return ApiResponse.success(userConverter.toUserDetailResponse(user), null);
+        return ApiResponse.success(userConverter.toUserResponse(user), null);
     }
 
     @Transactional
-    public ApiResponse<UserDetailResponse> updateEmployee(Integer userId, UserRequest request) {
+    public ApiResponse<UserResponse> updateEmployee(Integer userId, UserRequest request) {
         Integer companyId = principalResolver.getCompanyId();
         Optional<User> employeeOpt = userRepository.findById(userId);
         if (employeeOpt.isEmpty()) {
@@ -108,6 +95,9 @@ public class UserService {
         if (request.getIsActive() != null) {
             employee.setIsActive(request.getIsActive());
         }
+        if (request.getRole() != null) {
+            employee.setRole(request.getRole());
+        }
 
         String newEmail = request.getEmail();
         if (newEmail != null && !newEmail.equalsIgnoreCase(employee.getEmail())) {
@@ -122,7 +112,7 @@ public class UserService {
         }
 
         User updatedUser = userRepository.save(employee);
-        return ApiResponse.success(userConverter.toUserDetailResponse(updatedUser), messageHandler.getMessage("user.update.success"));
+        return ApiResponse.success(userConverter.toUserResponse(updatedUser), messageHandler.getMessage("user.update.success"));
     }
 
     @Transactional
@@ -141,7 +131,7 @@ public class UserService {
     }
 
     @Transactional
-    public ApiResponse<UserDetailResponse> getUserById(Integer userId) {
+    public ApiResponse<UserResponse> getUserById(Integer userId) {
         Company company = companyRepository.getReferenceById(principalResolver.getCompanyId());
         User user = userRepository.findById(userId).orElse(null);
         if (user == null) {
@@ -150,7 +140,7 @@ public class UserService {
         if (!user.getCompany().getId().equals(company.getId())) {
             return ApiResponse.failure(messageHandler.getMessage("error.employee.no-permission-view"));
         }
-        return ApiResponse.success(userConverter.toUserDetailResponse(user), "");
+        return ApiResponse.success(userConverter.toUserResponse(user), "");
     }
 
     @Transactional
@@ -175,7 +165,7 @@ public class UserService {
             .toList();
 
         UserAssignmentsResponse response = UserAssignmentsResponse.builder()
-            .user(userConverter.toUserDetailResponse(userOpt.get()))
+            .user(userConverter.toUserResponse(userOpt.get()))
             .evaluationsMade(madeResponses)
             .evaluationsReceived(receivedResponses)
             .build();
@@ -196,11 +186,5 @@ public class UserService {
             .toList();
 
         return ApiResponse.success(response, messageHandler.getMessage("admin.assignment.answers.get.success"));
-    }
-
-    private Optional<EvaluationAssignment> validateUserIsAssignedToEvaluate(Integer periodId, Integer evaluatorUserId, Integer evaluatedUserId) {
-        return evaluationAssignmentRepository.findFirstByEvaluatorUser_IdAndPeriodParticipant_Period_IdAndPeriodParticipant_EvaluatedUser_Id(
-            evaluatorUserId, periodId, evaluatedUserId
-        );
     }
 }

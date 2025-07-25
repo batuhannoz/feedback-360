@@ -4,7 +4,6 @@ import com.batuhan.feedback360.model.request.UserRequest;
 import com.batuhan.feedback360.model.response.AnswerResponse;
 import com.batuhan.feedback360.model.response.ApiResponse;
 import com.batuhan.feedback360.model.response.UserAssignmentsResponse;
-import com.batuhan.feedback360.model.response.UserDetailResponse;
 import com.batuhan.feedback360.model.response.UserResponse;
 import com.batuhan.feedback360.service.UserService;
 import java.util.List;
@@ -29,12 +28,12 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping
-    public ResponseEntity<ApiResponse<UserDetailResponse>> createUser(@RequestBody UserRequest request) {
+    public ResponseEntity<ApiResponse<UserResponse>> createUser(@RequestBody UserRequest request) {
         return ResponseEntity.ok(userService.createUser(request));
     }
 
     @PutMapping("/{userId}")
-    public ResponseEntity<ApiResponse<UserDetailResponse>> updateUser(@PathVariable Integer userId, @RequestBody UserRequest request) {
+    public ResponseEntity<ApiResponse<UserResponse>> updateUser(@PathVariable Integer userId, @RequestBody UserRequest request) {
         return ResponseEntity.ok(userService.updateEmployee(userId, request));
     }
 
@@ -47,7 +46,7 @@ public class UserController {
     }
 
     @GetMapping("/{userId}")
-    public ResponseEntity<ApiResponse<UserDetailResponse>> getUserDetails(@PathVariable Integer userId) {
+    public ResponseEntity<ApiResponse<UserResponse>> getUserDetails(@PathVariable Integer userId) {
         return ResponseEntity.ok(userService.getUserById(userId));
     }
 

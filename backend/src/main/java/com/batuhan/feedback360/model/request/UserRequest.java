@@ -13,4 +13,5 @@ public class UserRequest {
     private String email;
     private Boolean isAdmin;
     private Boolean isActive;
+    private String role;
 }

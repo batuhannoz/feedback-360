@@ -7,7 +7,7 @@ import lombok.Data;
 @Data
 @Builder
 public class UserAssignmentsResponse {
-    private UserDetailResponse user;
+    private UserResponse user;
     private List<AssignmentResponse> evaluationsMade;
     private List<AssignmentResponse> evaluationsReceived;
 }

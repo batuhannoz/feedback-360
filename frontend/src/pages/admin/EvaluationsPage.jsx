@@ -120,14 +120,6 @@ const EvaluationsPage = () => {
         }
     };
 
-        const handleWeightsClick = () => {
-        if (selectedEvaluations.length === 1) {
-            navigate(`/dashboard/evaluations/${selectedEvaluations[0]}/weights`);
-        }
-    };
-
-
-
     const handleCancelConfirm = async () => {
         try {
             await Promise.all(selectedEvaluations.map(id => EvaluationPeriodService.updatePeriodStatus(id, {status: 'CANCELLED'})));
@@ -192,8 +184,6 @@ const EvaluationsPage = () => {
                         <div className="flex items-center gap-2">
                             <Button variant="outline" size="sm" onClick={handleEditClick}
                                     disabled={selectedEvaluations.length !== 1}><Edit className="mr-2 h-4 w-4"/>Düzenle</Button>
-                            <Button variant="outline" size="sm" onClick={handleWeightsClick}
-                                    disabled={selectedEvaluations.length !== 1}><BarChart2 className="mr-2 h-4 w-4"/>Ağırlıklar</Button>
                             <Button variant="outline" size="sm" onClick={handleStartClick}
                                     disabled={isStartButtonDisabled}><Play className="mr-2 h-4 w-4"/>Başlat</Button>
                             <Button variant="outline" size="sm"><Mail className="mr-2 h-4 w-4"/>E-Posta</Button>

@@ -2,6 +2,15 @@ import React, { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { getEvaluatorsByPeriodId, setEvaluatorsByPeriodId } from '../../services/periodEvaluatorService';
 import { toast } from 'react-toastify';
+import {Button} from "../../components/ui/button.jsx";
+
+const evaluatorTypeTranslations = {
+    MANAGER: 'Müdür',
+    SUBORDINATE: 'Ast',
+    PEER: 'Akran',
+    SELF: 'Kendisi',
+    OTHER: 'Diğer'
+};
 
 const EvaluatorsPage = () => {
     const [evaluators, setEvaluators] = useState([]);
@@ -11,7 +20,9 @@ const EvaluatorsPage = () => {
         if (selectedPeriod) {
             getEvaluatorsByPeriodId(selectedPeriod.id)
                 .then(response => {
-                    setEvaluators(response.data);
+                    // Güvenlik için gelen verinin `name` alanı null ise boş string'e çevirelim
+                    const formattedData = response.data.map(e => ({...e, name: e.name || evaluatorTypeTranslations[e.type] || ''}));
+                    setEvaluators(formattedData);
                 })
                 .catch(error => {
                     toast.error('Değerlendiriciler getirilirken bir hata oluştu.');
@@ -55,18 +66,18 @@ const EvaluatorsPage = () => {
                                         type="text"
                                         value={evaluator.name}
                                         onChange={(e) => handleNameChange(evaluator.id, e.target.value)}
-                                        className="w-full p-2 border border-gray-300 rounded-md"
+                                        placeholder={evaluatorTypeTranslations[evaluator.evaluatorType]}
+                                        className="w-full p-2 border border-gray-300 rounded-md placeholder-gray-400"
                                     />
                                 </div>
                             ))
                         }
                         <div className="flex justify-end mt-6">
-                            <button
+                            <Button
                                 onClick={handleSave}
-                                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
                             >
                                 Kaydet
-                            </button>
+                            </Button>
                         </div>
                     </div>
                 </div>

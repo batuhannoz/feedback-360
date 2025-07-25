@@ -75,6 +75,10 @@ const AddEmployeeModal = ({ isOpen, onClose, onSuccess }) => {
                             <Input id="email" name="email" type="email" value={formData.email} onChange={handleChange} className="col-span-3" />
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="role" className="text-right">Pozisyon</Label>
+                            <Input id="role" name="role" value={formData.role} onChange={handleChange} className="col-span-3" />
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
                             <Label htmlFor="isAdmin" className="text-right">Admin mi?</Label>
                             <Checkbox id="isAdmin" checked={formData.isAdmin} onCheckedChange={(checked) => handleCheckedChange('isAdmin', checked)} />
                         </div>

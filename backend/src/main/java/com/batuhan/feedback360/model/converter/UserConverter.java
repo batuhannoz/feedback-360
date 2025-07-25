@@ -46,6 +46,7 @@ public class UserConverter {
             .lastName(user.getLastName())
             .email(user.getEmail())
             .isActive(user.getIsActive())
+            .role(user.getRole())
             .isAdmin(user.getIsAdmin())
             .build();
     }

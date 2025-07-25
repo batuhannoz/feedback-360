@@ -13,16 +13,20 @@ import ProtectedRoute from './components/ProtectedRoute.jsx';
 
 import DashboardPage from './pages/admin/DashboardPage.jsx';
 import EmployeesPage from './pages/admin/EmployeesPage.jsx';
+import EmployeeDetailPage from './pages/admin/EmployeeDetailPage.jsx';
+import AssignmentAnswersPage from './pages/admin/AssignmentAnswersPage.jsx';
+import StartPeriodPage from './pages/admin/StartPeriodPage.jsx';
 import ReportsPage from './pages/admin/ReportsPage.jsx';
 import SettingsPage from './pages/admin/SettingsPage.jsx';
 import EvaluationsPage from './pages/admin/EvaluationsPage.jsx';
 import ParticipantsPage from './pages/admin/ParticipantsPage.jsx';
 import CompetenciesPage from './pages/admin/CompetenciesPage.jsx';
 import TemplatesPage from './pages/admin/TemplatesPage.jsx';
-import WeightsPage from './pages/admin/WeightsPage.jsx';
+import WeightsPage from './pages/admin/CompetencyWeightsPage.jsx';
 import EvaluatorsPage from "./pages/admin/EvaluatorsPage.jsx";
 
 import './App.css';
+import SourceWeightsPage from "./pages/admin/SourceWeightsPage.jsx";
 
 function App() {
     const { user } = useSelector((state) => state.auth);
@@ -46,6 +50,9 @@ function App() {
                     <Route path="/dashboard" element={<AdminLayout />}>
                         <Route index element={<DashboardPage />} />
                         <Route path="employees" element={<EmployeesPage />} />
+                        <Route path="employees/:userId" element={<EmployeeDetailPage />} />
+                        <Route path="assignments/:assignmentId/answers" element={<AssignmentAnswersPage />} />
+                        <Route path="start-period" element={<StartPeriodPage />} />
                         <Route path="evaluators" element={<EvaluatorsPage/>} />
                         <Route path="reports" element={<ReportsPage />} />
                         <Route path="settings" element={<SettingsPage />} />
@@ -53,7 +60,8 @@ function App() {
                         <Route path="participants" element={<ParticipantsPage />} />
                         <Route path="competencies" element={<CompetenciesPage />} />
                         <Route path="templates" element={<TemplatesPage />} />
-                        <Route path="evaluations/:periodId/weights" element={<WeightsPage />} />
+                        <Route path="competency-weights" element={<WeightsPage />} />
+                        <Route path="source-weights" element={<SourceWeightsPage />} />
                     </Route>
                 </Route>
 

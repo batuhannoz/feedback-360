@@ -27,7 +27,6 @@ const EditEmployeeModal = ({ isOpen, onClose, onSuccess, employee }) => {
                 isActive: employee.isActive,
             });
         } else {
-            // Reset form if no employee is selected
             setFormData({
                 firstName: '',
                 lastName: '',
@@ -88,6 +87,10 @@ const EditEmployeeModal = ({ isOpen, onClose, onSuccess, employee }) => {
                         <div className="grid grid-cols-4 items-center gap-4">
                             <Label htmlFor="email" className="text-right">Email</Label>
                             <Input id="email" name="email" type="email" value={formData.email} onChange={handleChange} className="col-span-3" />
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="role" className="text-right">Pozisyon</Label>
+                            <Input id="role" name="role" value={formData.role} onChange={handleChange} className="col-span-3" />
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
                             <Label htmlFor="isAdmin" className="text-right">Admin mi?</Label>

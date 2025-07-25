@@ -184,7 +184,7 @@ public class EvaluationPeriodService {
         if (period == null) {
             return ApiResponse.failure(messageHandler.getMessage("evaluation-period.not-found"));
         }
-        if (period.getStatus() == PeriodStatus.IN_PROGRESS || period.getStatus() == PeriodStatus.COMPLETED) {
+        if (period.getStatus() == PeriodStatus.IN_PROGRESS) {
             return ApiResponse.failure(messageHandler.getMessage("evaluation-period.delete.invalid-state", period.getStatus().name()));
         }
 

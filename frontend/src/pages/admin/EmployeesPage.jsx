@@ -1,21 +1,23 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, {useState, useEffect, useCallback} from 'react';
+import { useNavigate } from 'react-router-dom';
 import UserService from '../../services/userService';
-import { Button } from '../../components/ui/button';
-import { Checkbox } from '../../components/ui/checkbox';
-import { Input } from '../../components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../../components/ui/table';
-import { Plus, Upload, Download } from 'lucide-react';
+import {Button} from '../../components/ui/button';
+import {Checkbox} from '../../components/ui/checkbox';
+import {Input} from '../../components/ui/input';
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '../../components/ui/select';
+import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from '../../components/ui/table';
+import {Plus, Upload, Download} from 'lucide-react';
 import AddEmployeeModal from '../../components/admin/AddEmployeeModal';
 import EditEmployeeModal from '../../components/admin/EditEmployeeModal';
 
 const EmployeesPage = () => {
     const [employees, setEmployees] = useState([]);
     const [selectedEmployees, setSelectedEmployees] = useState([]);
-    const [filters, setFilters] = useState({ name: '', status: 'all' });
-        const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+    const [filters, setFilters] = useState({name: '', status: 'all'});
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [selectedEmployeeForEdit, setSelectedEmployeeForEdit] = useState(null);
+    const navigate = useNavigate();
 
     const fetchEmployees = useCallback(() => {
         const params = {};
@@ -52,10 +54,10 @@ const EmployeesPage = () => {
     };
 
     const handleFilterChange = (key, value) => {
-        setFilters(prev => ({ ...prev, [key]: value }));
+        setFilters(prev => ({...prev, [key]: value}));
     };
 
-        const updateSelectedEmployeesStatus = (isActive) => {
+    const updateSelectedEmployeesStatus = (isActive) => {
         const promises = selectedEmployees.map(id => {
             const employee = employees.find(e => e.id === id);
             if (employee) {
@@ -83,9 +85,10 @@ const EmployeesPage = () => {
             <div className="flex justify-between items-center mb-4">
                 <h1 className="text-2xl font-bold">Çalışanlar</h1>
                 <div className="flex items-center gap-2">
-                    <Button variant="outline" disabled><Download className="mr-2 h-4 w-4" /> İçe Aktar</Button>
-                    <Button variant="outline" disabled><Upload className="mr-2 h-4 w-4" /> Dışa Aktar</Button>
-                                        <Button onClick={() => setIsAddModalOpen(true)}><Plus className="mr-2 h-4 w-4" /> Çalışan Ekle</Button>
+                    <Button variant="outline" disabled><Download className="mr-2 h-4 w-4"/> İçe Aktar</Button>
+                    <Button variant="outline" disabled><Upload className="mr-2 h-4 w-4"/> Dışa Aktar</Button>
+                    <Button onClick={() => setIsAddModalOpen(true)}><Plus className="mr-2 h-4 w-4"/> Çalışan
+                        Ekle</Button>
                 </div>
             </div>
 
@@ -97,15 +100,14 @@ const EmployeesPage = () => {
                         onChange={(e) => handleFilterChange('name', e.target.value)}
                         className="max-w-xs"
                     />
-                    {/* Position filter placeholder - functionality not implemented */}
                     <Select disabled>
                         <SelectTrigger className="w-[180px]">
-                            <SelectValue placeholder="Tüm Pozisyonlar" />
+                            <SelectValue placeholder="Tüm Pozisyonlar"/>
                         </SelectTrigger>
                     </Select>
                     <Select onValueChange={(value) => handleFilterChange('status', value)} defaultValue="all">
                         <SelectTrigger className="w-[180px]">
-                            <SelectValue placeholder="Tüm Durumlar" />
+                            <SelectValue placeholder="Tüm Durumlar"/>
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="all">Tüm Durumlar</SelectItem>
@@ -116,8 +118,10 @@ const EmployeesPage = () => {
                 </div>
 
                 <div className="flex items-center gap-2 mb-4">
-                    <Button size="sm" onClick={() => updateSelectedEmployeesStatus(false)} disabled={selectedEmployees.length === 0}>Seçili Çalışanı Pasif Et</Button>
-                    <Button size="sm" onClick={() => updateSelectedEmployeesStatus(true)} disabled={selectedEmployees.length === 0}>Seçili Çalışanı Aktif Et</Button>
+                    <Button size="sm" onClick={() => updateSelectedEmployeesStatus(false)}
+                            disabled={selectedEmployees.length === 0}>Seçili Çalışanı Pasif Et</Button>
+                    <Button size="sm" onClick={() => updateSelectedEmployeesStatus(true)}
+                            disabled={selectedEmployees.length === 0}>Seçili Çalışanı Aktif Et</Button>
                 </div>
 
                 <Table>
@@ -136,24 +140,19 @@ const EmployeesPage = () => {
                     </TableHeader>
                     <TableBody>
                         {employees.map((employee) => (
-                                                        <TableRow 
+                            <TableRow 
                                 key={employee.id}
-                                onClick={() => {
-                                    setSelectedEmployeeForEdit(employee);
-                                    setIsEditModalOpen(true);
-                                }}
+                                onClick={() => navigate(`/dashboard/employees/${employee.id}`)}
                                 className="cursor-pointer"
                             >
-                                                                <TableCell onClick={(e) => e.stopPropagation()}>
+                                <TableCell onClick={(e) => e.stopPropagation()}>
                                     <Checkbox
                                         checked={selectedEmployees.includes(employee.id)}
                                         onCheckedChange={() => handleSelectOne(employee.id)}
                                     />
                                 </TableCell>
                                 <TableCell>{`${employee.firstName} ${employee.lastName}`}</TableCell>
-                                <TableCell>-
-                                    {/* Position data not available */}
-                                </TableCell>
+                                <TableCell>{employee.role}</TableCell>
                                 <TableCell>{employee.isActive ? 'Aktif' : 'Pasif'}</TableCell>
                             </TableRow>
                         ))}
@@ -161,7 +160,7 @@ const EmployeesPage = () => {
                 </Table>
             </div>
 
-                        <AddEmployeeModal
+            <AddEmployeeModal
                 isOpen={isAddModalOpen}
                 onClose={() => setIsAddModalOpen(false)}
                 onSuccess={() => {

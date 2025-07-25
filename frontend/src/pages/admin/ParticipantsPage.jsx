@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
-import { useSelector } from 'react-redux';
-import { getUsers } from '../../services/userService';
+import React, {useState, useEffect, useMemo, useCallback} from 'react';
+import {DragDropContext, Droppable, Draggable} from 'react-beautiful-dnd';
+import {useSelector} from 'react-redux';
+import {getUsers} from '../../services/userService';
 import {
     getParticipantsByPeriod,
     addParticipantToPeriod,
@@ -9,11 +9,19 @@ import {
     getParticipantAssignments,
     saveParticipantAssignments
 } from '../../services/participantService';
-import { getEvaluatorsByPeriodId } from '../../services/periodEvaluatorService';
-import { Input } from '../../components/ui/input';
-import { Button } from '../../components/ui/button';
-import { toast } from 'sonner';
+import {getEvaluatorsByPeriodId} from '../../services/periodEvaluatorService';
+import {Input} from '../../components/ui/input';
+import {Button} from '../../components/ui/button';
+import {toast} from 'sonner';
 import {StrictModeDroppable} from "../../components/StrictModeDroppable.tsx";
+
+const evaluatorTypeTranslations = {
+    MANAGER: 'Müdür',
+    SUBORDINATE: 'Ast',
+    PEER: 'Akran',
+    SELF: 'Kendisi',
+    OTHER: 'Diğer'
+};
 
 const ParticipantsPage = () => {
     const [step, setStep] = useState(1);
@@ -27,13 +35,15 @@ const ParticipantsPage = () => {
     const [assignmentSearchTerm, setAssignmentSearchTerm] = useState('');
     const [isSelfEvaluation, setIsSelfEvaluation] = useState(false);
 
-    const [dndState, setDndState] = useState({ users: {}, columns: {}, columnOrder: [] });
+    const [dndState, setDndState] = useState({users: {}, columns: {}, columnOrder: []});
 
     const selectedPeriod = useSelector((state) => state.period.selectedPeriod);
 
     const initializeDndState = useCallback((evalTypes, companyUsers, existingAssignments = [], currentParticipant) => {
         const users = {};
-        companyUsers.forEach(u => { users[u.id] = u; });
+        companyUsers.forEach(u => {
+            users[u.id] = u;
+        });
 
         const columns = {};
         const assignedUserIds = new Set();
@@ -42,7 +52,8 @@ const ParticipantsPage = () => {
             const userIdsInColumn = existingAssignments
                 .filter(a => a.evaluator.id === type.id)
                 .map(a => a.evaluatorUser.id);
-            columns[type.id] = { id: type.id, title: type.name, userIds: userIdsInColumn };
+            // Burada `type.name` zaten işlenmiş olduğu için doğru başlık gelecektir.
+            columns[type.id] = {id: type.id, title: type.name, userIds: userIdsInColumn};
             userIdsInColumn.forEach(id => assignedUserIds.add(id));
         });
 
@@ -50,17 +61,16 @@ const ParticipantsPage = () => {
             .filter(u => !assignedUserIds.has(u.id) && u.id !== currentParticipant?.id)
             .map(u => u.id);
 
-        columns['available'] = { id: 'available', title: 'Tüm Çalışanlar', userIds: availableUserIds };
+        columns['available'] = {id: 'available', title: 'Tüm Çalışanlar', userIds: availableUserIds};
 
         const columnOrder = ['available', ...evalTypes.map(t => t.id)];
 
         const selfAssignment = existingAssignments.find(
             a => a.evaluatorUser.id === currentParticipant?.id && a.evaluator.evaluatorType === 'SELF'
         );
-        console.log(currentParticipant.id)
         setIsSelfEvaluation(!!selfAssignment);
 
-        setDndState({ users, columns, columnOrder });
+        setDndState({users, columns, columnOrder});
     }, []);
 
     const fetchInitialData = useCallback(async () => {
@@ -68,18 +78,27 @@ const ParticipantsPage = () => {
         setLoading(true);
         try {
             const [usersRes, participantsRes, evaluatorTypesRes] = await Promise.all([
-                getUsers({ active: true }),
+                getUsers({active: true}),
                 getParticipantsByPeriod(selectedPeriod.id),
                 getEvaluatorsByPeriodId(selectedPeriod.id)
             ]);
 
             const companyUsers = usersRes.data || [];
             const fetchedParticipants = participantsRes.data || [];
-            const fetchedEvaluatorTypes = evaluatorTypesRes.data.filter(et => et.evaluatorType !== 'SELF') || [];
+
+            // DEĞİŞİKLİK 2: Değerlendirici tiplerini işleyerek boş isimleri doldurun.
+            const processedEvaluatorTypes = (evaluatorTypesRes.data || []).map(et => ({
+                ...et,
+                // Eğer `name` alanı boş veya null ise, çeviri nesnesinden varsayılan adı alınır.
+                name: et.name || evaluatorTypeTranslations[et.evaluatorType] || 'Bilinmeyen Tip'
+            }));
+
+            // 'SELF' tipi, özel checkbox ile yönetildiği için D&D sütunlarından çıkarılır.
+            const filteredEvaluatorTypes = processedEvaluatorTypes.filter(et => et.evaluatorType !== 'SELF');
 
             setAllCompanyUsers(companyUsers);
             setParticipants(fetchedParticipants);
-            setEvaluatorTypes(fetchedEvaluatorTypes);
+            setEvaluatorTypes(filteredEvaluatorTypes); // İşlenmiş veriyi state'e kaydedin.
 
             const participantIds = new Set(fetchedParticipants.map(p => p.id));
             setAvailableUsers(companyUsers.filter(user => !participantIds.has(user.id)));
@@ -96,6 +115,7 @@ const ParticipantsPage = () => {
         }
     }, [selectedPeriod]);
 
+
     useEffect(() => {
         fetchInitialData();
     }, [fetchInitialData]);
@@ -110,7 +130,7 @@ const ParticipantsPage = () => {
                 .catch(err => {
                     toast.error('Atamalar yüklenemedi.');
                     console.error(err);
-                    initializeDndState(evaluatorTypes, allCompanyUsers, [], selectedParticipant); // Initialize empty on error
+                    initializeDndState(evaluatorTypes, allCompanyUsers, [], selectedParticipant);
                 })
                 .finally(() => setLoading(false));
         }
@@ -140,7 +160,7 @@ const ParticipantsPage = () => {
     };
 
     const onDragEnd = (result) => {
-        const { destination, source, draggableId } = result;
+        const {destination, source, draggableId} = result;
 
         if (!destination) return;
         if (destination.droppableId === source.droppableId && destination.index === source.index) return;
@@ -153,22 +173,21 @@ const ParticipantsPage = () => {
             newUserIds.splice(source.index, 1);
             newUserIds.splice(destination.index, 0, parseInt(draggableId));
 
-            const newColumn = { ...startColumn, userIds: newUserIds };
+            const newColumn = {...startColumn, userIds: newUserIds};
             setDndState(prev => ({
                 ...prev,
-                columns: { ...prev.columns, [newColumn.id]: newColumn },
+                columns: {...prev.columns, [newColumn.id]: newColumn},
             }));
             return;
         }
 
-        // Moving from one list to another
         const startUserIds = Array.from(startColumn.userIds);
         startUserIds.splice(source.index, 1);
-        const newStartColumn = { ...startColumn, userIds: startUserIds };
+        const newStartColumn = {...startColumn, userIds: startUserIds};
 
         const finishUserIds = Array.from(finishColumn.userIds);
         finishUserIds.splice(destination.index, 0, parseInt(draggableId));
-        const newFinishColumn = { ...finishColumn, userIds: finishUserIds };
+        const newFinishColumn = {...finishColumn, userIds: finishUserIds};
 
         setDndState(prev => ({
             ...prev,
@@ -184,7 +203,9 @@ const ParticipantsPage = () => {
         if (!selectedParticipant) return;
 
         try {
-            const selfEvaluatorType = (await getEvaluatorsByPeriodId(selectedPeriod.id)).data.find(e => e.evaluatorType === 'SELF');
+            // Self tipi için API'den gelen orijinal veriyi tekrar çekmek yerine işlenmiş veriden bulalım
+            const allEvaluatorTypes = (await getEvaluatorsByPeriodId(selectedPeriod.id)).data;
+            const selfEvaluatorType = allEvaluatorTypes.find(e => e.evaluatorType === 'SELF');
 
             let assignmentDetails = [];
             for (const columnId in dndState.columns) {
@@ -260,8 +281,9 @@ const ParticipantsPage = () => {
                 />
                 <div className="overflow-auto h-96">
                     {filteredAvailableUsers.map(user => (
-                        <div key={user.id} className="flex items-center justify-between p-2 hover:bg-gray-100 rounded-md">
-                            <span>{`${user.firstName} ${user.lastName}`}</span>
+                        <div key={user.id}
+                             className="flex items-center justify-between p-2 hover:bg-gray-100 rounded-md">
+                            <span>{`${user.firstName} ${user.lastName} ${user.role ? ` - ${user.role}` : ''}`}</span>
                             <Button size="sm" onClick={() => handleAddParticipant(user)}>Ekle</Button>
                         </div>
                     ))}
@@ -271,9 +293,11 @@ const ParticipantsPage = () => {
                 <h2 className="text-lg font-semibold mb-4">Katılımcılar ({participants.length})</h2>
                 <div className="overflow-auto h-96">
                     {participants.map(user => (
-                        <div key={user.id} className="flex items-center justify-between p-2 hover:bg-gray-100 rounded-md">
-                            <span>{`${user.firstName} ${user.lastName}`}</span>
-                            <Button variant="destructive" size="sm" onClick={() => handleRemoveParticipant(user)}>Çıkar</Button>
+                        <div key={user.id}
+                             className="flex items-center justify-between p-2 hover:bg-gray-100 rounded-md">
+                            <span>{`${user.firstName} ${user.lastName} ${user.role ? ` - ${user.role}` : ''}`}</span>
+                            <Button variant="destructive" size="sm"
+                                    onClick={() => handleRemoveParticipant(user)}>Çıkar</Button>
                         </div>
                     ))}
                 </div>
@@ -284,7 +308,7 @@ const ParticipantsPage = () => {
     const renderStep2 = () => (
         <DragDropContext onDragEnd={onDragEnd}>
             <div className="space-y-4">
-                 <div className="grid grid-cols-2 gap-6">
+                <div className="grid grid-cols-2 gap-6">
                     <div className="border rounded-lg p-4 space-y-4">
                         <div>
                             <label className="font-semibold">Değerlendirilen Çalışan</label>
@@ -294,7 +318,9 @@ const ParticipantsPage = () => {
                                 onChange={(e) => setSelectedParticipant(participants.find(p => p.id.toString() === e.target.value))}
                             >
                                 {participants.map(p => (
-                                    <option key={p.id} value={p.id}>{`${p.firstName} ${p.lastName}`}</option>
+                                    <option key={p.id} value={p.id}>
+                                        {`${p.firstName} ${p.lastName} ${p.role ? ` - ${p.role}` : ''}`}
+                                    </option>
                                 ))}
                             </select>
                         </div>
@@ -312,7 +338,8 @@ const ParticipantsPage = () => {
                                                 {...provided.droppableProps}
                                                 className={`border rounded p-2 min-h-[50px] transition-colors ${snapshot.isDraggingOver ? 'bg-blue-100' : 'bg-gray-50'}`}>
                                                 {users.map((user, index) => user && (
-                                                    <Draggable key={user.id} draggableId={user.id.toString()} index={index}>
+                                                    <Draggable key={user.id} draggableId={user.id.toString()}
+                                                               index={index}>
                                                         {(provided) => (
                                                             <div
                                                                 ref={provided.innerRef}
@@ -320,7 +347,7 @@ const ParticipantsPage = () => {
                                                                 {...provided.dragHandleProps}
                                                                 className="p-2 border rounded mb-2 bg-white cursor-grab shadow-sm"
                                                             >
-                                                                {`${user.firstName} ${user.lastName}`}
+                                                                {`${user.firstName} ${user.lastName} ${user.role ? ` - ${user.role}` : ''}`}
                                                             </div>
                                                         )}
                                                     </Draggable>
@@ -332,13 +359,16 @@ const ParticipantsPage = () => {
                                 </div>
                             );
                         })}
-                         <div>
+                        <div>
                             <h3 className="font-semibold">Kendi</h3>
                             <div className="flex items-center space-x-2 mt-2 p-2 border rounded">
                                 <input type="checkbox" id="self-evaluation" checked={isSelfEvaluation}
-                                        onChange={(e) => setIsSelfEvaluation(e.target.checked)}/>
+                                       onChange={(e) => setIsSelfEvaluation(e.target.checked)}/>
                                 <label htmlFor="self-evaluation">
-                                    {selectedParticipant ? `${selectedParticipant.firstName} ${selectedParticipant.lastName}` : ''}
+                                    {selectedParticipant ?
+                                        `${selectedParticipant.firstName} ${selectedParticipant.lastName} ${selectedParticipant.role ?
+                                            ` - ${selectedParticipant.role}` : ''
+                                        }` : ''}
                                 </label>
                             </div>
                         </div>
@@ -367,7 +397,7 @@ const ParticipantsPage = () => {
                                                     {...provided.dragHandleProps}
                                                     className="p-2 border rounded mb-2 bg-white cursor-grab shadow-sm"
                                                 >
-                                                    {`${user.firstName} ${user.lastName}`}
+                                                    {`${user.firstName} ${user.lastName} ${user.role ? ` - ${user.role}` : ''}`}
                                                 </div>
                                             )}
                                         </Draggable>
@@ -388,7 +418,8 @@ const ParticipantsPage = () => {
                 <h1 className="text-2xl font-semibold">Katılımcıları Belirle</h1>
                 <div>
                     {step === 2 && <Button variant="outline" onClick={() => setStep(1)} className="mr-4">Geri</Button>}
-                    {step === 1 && <Button onClick={() => setStep(2)} disabled={participants.length === 0}>Değerlendirici Ata</Button>}
+                    {step === 1 && <Button onClick={() => setStep(2)} disabled={participants.length === 0}>Değerlendirici
+                        Ata</Button>}
                     {step === 2 && <Button onClick={handleSave}>Kaydet</Button>}
                 </div>
             </div>
