@@ -247,6 +247,7 @@ public class PeriodReportService {
         return weightedScoreWithinCompetency.multiply(competencyWeight.divide(new BigDecimal(100), 4, RoundingMode.HALF_UP));
     }
 
+    // TODO temporary / refactor
     private String buildReportEmailBody(UserPeriodReportResponse report, ShareReportRequest shareRequest) {
         StringBuilder sb = new StringBuilder();
         String userName = report.getUser().getFirstName();
