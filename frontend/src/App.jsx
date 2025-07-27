@@ -16,6 +16,9 @@ import EmployeesPage from './pages/admin/EmployeesPage.jsx';
 import EmployeeDetailPage from './pages/admin/EmployeeDetailPage.jsx';
 import AssignmentAnswersPage from './pages/admin/AssignmentAnswersPage.jsx';
 import StartPeriodPage from './pages/admin/StartPeriodPage.jsx';
+import MyPeriodsPage from './pages/user/MyPeriodsPage.jsx';
+import MyAssignmentsPage from './pages/user/MyAssignmentsPage.jsx';
+import EvaluationPage from './pages/user/EvaluationPage.jsx';
 import ReportsPage from './pages/admin/ReportsPage.jsx';
 import SettingsPage from './pages/admin/SettingsPage.jsx';
 import EvaluationsPage from './pages/admin/EvaluationsPage.jsx';
@@ -46,22 +49,30 @@ function App() {
                 <Route path="/forgot-password" element={<Navigate to="/sign-in" replace />} />
                 <Route path="/unauthorized" element={<UnauthorizedPage />} />
 
-                <Route element={<ProtectedRoute allowedRoles={['ROLE_ADMIN', 'ROLE_COMPANY_OWNER']} />}>
-                    <Route path="/dashboard" element={<AdminLayout />}>
-                        <Route index element={<DashboardPage />} />
-                        <Route path="employees" element={<EmployeesPage />} />
-                        <Route path="employees/:userId" element={<EmployeeDetailPage />} />
-                        <Route path="assignments/:assignmentId/answers" element={<AssignmentAnswersPage />} />
-                        <Route path="start-period" element={<StartPeriodPage />} />
-                        <Route path="evaluators" element={<EvaluatorsPage/>} />
-                        <Route path="reports" element={<ReportsPage />} />
-                        <Route path="settings" element={<SettingsPage />} />
-                        <Route path="evaluations" element={<EvaluationsPage />} />
-                        <Route path="participants" element={<ParticipantsPage />} />
-                        <Route path="competencies" element={<CompetenciesPage />} />
-                        <Route path="templates" element={<TemplatesPage />} />
-                        <Route path="competency-weights" element={<WeightsPage />} />
-                        <Route path="source-weights" element={<SourceWeightsPage />} />
+                <Route element={<ProtectedRoute allowedRoles={['ROLE_ADMIN', 'ROLE_COMPANY_OWNER', 'ROLE_EMPLOYEE']} />}>
+                    {/* User-facing routes */}
+                    <Route path="/my-evaluations" element={<MyPeriodsPage />} />
+                    <Route path="/my-evaluations/:periodId/assignments" element={<MyAssignmentsPage />} />
+                    <Route path="/my-evaluations/:periodId/assignments/:evaluatedUserId" element={<EvaluationPage />} />
+
+                    {/* Admin-only routes */}
+                    <Route element={<ProtectedRoute allowedRoles={['ROLE_ADMIN', 'ROLE_COMPANY_OWNER']} />}>
+                        <Route path="/dashboard/*" element={<AdminLayout />}>
+                            <Route index element={<DashboardPage />} />
+                            <Route path="employees" element={<EmployeesPage />} />
+                            <Route path="employees/:userId" element={<EmployeeDetailPage />} />
+                            <Route path="assignments/:assignmentId/answers" element={<AssignmentAnswersPage />} />
+                            <Route path="start-period" element={<StartPeriodPage />} />
+                            <Route path="evaluators" element={<EvaluatorsPage/>} />
+                            <Route path="reports" element={<ReportsPage />} />
+                            <Route path="settings" element={<SettingsPage />} />
+                            <Route path="evaluations" element={<EvaluationsPage />} />
+                            <Route path="participants" element={<ParticipantsPage />} />
+                            <Route path="competencies" element={<CompetenciesPage />} />
+                            <Route path="templates" element={<TemplatesPage />} />
+                            <Route path="competency-weights" element={<WeightsPage />} />
+                            <Route path="source-weights" element={<SourceWeightsPage />} />
+                        </Route>
                     </Route>
                 </Route>
 

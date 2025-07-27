@@ -15,6 +15,8 @@ public class QuestionConverter {
         return QuestionResponse.builder()
             .id(question.getId())
             .questionText(question.getQuestionText())
+            .hiddenScores(question.getHiddenScores())
+            .scoresRequiringComment(question.getScoresRequiringComment())
             .build();
     }
 }
