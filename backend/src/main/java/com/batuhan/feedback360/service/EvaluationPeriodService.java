@@ -1,9 +1,7 @@
 package com.batuhan.feedback360.service;
 
 import com.batuhan.feedback360.config.AuthenticationPrincipalResolver;
-import com.batuhan.feedback360.model.converter.CompetencyEvaluatorPermissionConverter;
 import com.batuhan.feedback360.model.converter.EvaluationPeriodConverter;
-import com.batuhan.feedback360.model.converter.EvaluatorConverter;
 import com.batuhan.feedback360.model.entitiy.Company;
 import com.batuhan.feedback360.model.entitiy.Competency;
 import com.batuhan.feedback360.model.entitiy.CompetencyEvaluatorPermission;
@@ -16,9 +14,12 @@ import com.batuhan.feedback360.model.enums.PeriodStatus;
 import com.batuhan.feedback360.model.request.EvaluationPeriodRequest;
 import com.batuhan.feedback360.model.request.UpdatePeriodStatusRequest;
 import com.batuhan.feedback360.model.response.ApiResponse;
+import com.batuhan.feedback360.model.response.EvaluationPeriodDetailResponse;
 import com.batuhan.feedback360.model.response.EvaluationPeriodResponse;
+import com.batuhan.feedback360.model.response.ParticipantDetailResponse;
 import com.batuhan.feedback360.repository.CompanyRepository;
 import com.batuhan.feedback360.repository.CompetencyEvaluatorPermissionRepository;
+import com.batuhan.feedback360.repository.EvaluationAssignmentRepository;
 import com.batuhan.feedback360.repository.EvaluationPeriodRepository;
 import com.batuhan.feedback360.repository.EvaluatorRepository;
 import com.batuhan.feedback360.repository.PeriodCompetencyWeightRepository;
@@ -42,13 +43,12 @@ public class EvaluationPeriodService {
     private final EvaluationPeriodConverter evaluationPeriodConverter;
     private final EvaluatorRepository evaluatorRepository;
     private final MessageHandler messageHandler;
-    private final EvaluatorConverter evaluatorConverter;
     private final PeriodParticipantRepository periodParticipantRepository;
     private final PeriodCompetencyWeightRepository periodCompetencyWeightRepository;
     private final CompetencyEvaluatorPermissionRepository competencyEvaluatorPermissionRepository;
-    private final CompetencyEvaluatorPermissionConverter competencyEvaluatorPermissionConverter;
     private static final BigDecimal ONE_HUNDRED = new BigDecimal("100.00");
     private final EmailService emailService;
+    private final EvaluationAssignmentRepository evaluationAssignmentRepository;
     public ApiResponse<EvaluationPeriodResponse> createEvaluationPeriod(EvaluationPeriodRequest request) {
         Company company = companyRepository.getReferenceById(principalResolver.getCompanyId());
 
@@ -97,6 +97,39 @@ public class EvaluationPeriodService {
             evaluationPeriodConverter.toEvaluationPeriodResponse(evaluationPeriod),
             messageHandler.getMessage("evaluation-period.get.success")
         );
+    }
+
+    public ApiResponse<EvaluationPeriodDetailResponse> getEvaluationPeriodDetails(Long periodId) {
+        EvaluationPeriod period = evaluationPeriodRepository.findById(periodId.intValue()).orElse(null);
+        if (period == null) {
+            return ApiResponse.failure(messageHandler.getMessage("evaluation-period.not-found"));
+        }
+
+        List<PeriodParticipant> participants = periodParticipantRepository.findAllByPeriod(period);
+
+        List<ParticipantDetailResponse> participantDetails = participants.stream().map(participant -> {
+            List<com.batuhan.feedback360.model.entitiy.EvaluationAssignment> assignments = evaluationAssignmentRepository.findAllByPeriodParticipant(participant);
+            long completedCount = assignments.stream().filter(a -> a.getAnswers() != null && !a.getAnswers().isEmpty()).count();
+            return ParticipantDetailResponse.builder()
+                .userId(participant.getEvaluatedUser().getId().longValue())
+                .firstName(participant.getEvaluatedUser().getFirstName())
+                .lastName(participant.getEvaluatedUser().getLastName())
+                .email(participant.getEvaluatedUser().getEmail())
+                .totalAssignments(assignments.size())
+                .completedAssignments((int) completedCount)
+                .build();
+        }).collect(Collectors.toList());
+
+        EvaluationPeriodDetailResponse response = EvaluationPeriodDetailResponse.builder()
+            .id(period.getId().longValue())
+            .periodName(period.getPeriodName())
+            .startDate(period.getStartDate().toLocalDate())
+            .endDate(period.getEndDate().toLocalDate())
+            .status(period.getStatus().name())
+            .participants(participantDetails)
+            .build();
+
+        return ApiResponse.success(response, messageHandler.getMessage("evaluation-period.detail.get.success"));
     }
 
     public ApiResponse<EvaluationPeriodResponse> updateEvaluationPeriod(Integer evaluationPeriodId, EvaluationPeriodRequest request) {

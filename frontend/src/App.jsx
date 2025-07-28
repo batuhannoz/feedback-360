@@ -27,16 +27,18 @@ import CompetenciesPage from './pages/admin/CompetenciesPage.jsx';
 import TemplatesPage from './pages/admin/TemplatesPage.jsx';
 import WeightsPage from './pages/admin/CompetencyWeightsPage.jsx';
 import EvaluatorsPage from "./pages/admin/EvaluatorsPage.jsx";
+import EvaluationPeriodDetailPage from './pages/admin/EvaluationPeriodDetailPage.jsx';
 
 import './App.css';
 import SourceWeightsPage from "./pages/admin/SourceWeightsPage.jsx";
 
 function App() {
-    const { user } = useSelector((state) => state.auth);
+    const { user, role } = useSelector((state) => state.auth);
 
     const getDefaultRoute = () => {
         if (!user) return '/sign-in';
-        return '/dashboard'
+        if (role === 'ROLE_ADMIN') return '/dashboard';
+        if (role === 'ROLE_EMPLOYEE') return '/my-evaluations';
     };
 
     return (
@@ -67,6 +69,7 @@ function App() {
                             <Route path="reports" element={<ReportsPage />} />
                             <Route path="settings" element={<SettingsPage />} />
                             <Route path="evaluations" element={<EvaluationsPage />} />
+                            <Route path="evaluations/:periodId" element={<EvaluationPeriodDetailPage />} />
                             <Route path="participants" element={<ParticipantsPage />} />
                             <Route path="competencies" element={<CompetenciesPage />} />
                             <Route path="templates" element={<TemplatesPage />} />

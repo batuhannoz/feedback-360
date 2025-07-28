@@ -3,6 +3,7 @@ package com.batuhan.feedback360.controller;
 import com.batuhan.feedback360.model.request.EvaluationPeriodRequest;
 import com.batuhan.feedback360.model.request.UpdatePeriodStatusRequest;
 import com.batuhan.feedback360.model.response.ApiResponse;
+import com.batuhan.feedback360.model.response.EvaluationPeriodDetailResponse;
 import com.batuhan.feedback360.model.response.EvaluationPeriodResponse;
 import com.batuhan.feedback360.service.EvaluationPeriodService;
 import jakarta.validation.Valid;
@@ -40,6 +41,11 @@ public class EvaluationPeriodController {
     @GetMapping("/{periodId}")
     public ResponseEntity<ApiResponse<EvaluationPeriodResponse>> getPeriodById(@PathVariable Integer periodId) {
         return ResponseEntity.ok(evaluationPeriodService.getEvaluationPeriodById(periodId));
+    }
+
+    @GetMapping("/{periodId}/details")
+    public ResponseEntity<ApiResponse<EvaluationPeriodDetailResponse>> getPeriodDetails(@PathVariable Long periodId) {
+        return ResponseEntity.ok(evaluationPeriodService.getEvaluationPeriodDetails(periodId));
     }
 
     @PutMapping("/{periodId}")

@@ -220,7 +220,7 @@ const EvaluationsPage = () => {
                         {error && <TableRow><TableCell colSpan="5"
                                                        className="text-center text-red-500">{error}</TableCell></TableRow>}
                         {!loading && !error && evaluations.map((evaluation) => (
-                            <TableRow key={evaluation.id}>
+                            <TableRow key={evaluation.id} onClick={() => navigate(`/dashboard/evaluations/${evaluation.id}`)}>
                                 <TableCell>
                                     <Checkbox
                                         checked={selectedEvaluations.includes(evaluation.id)}

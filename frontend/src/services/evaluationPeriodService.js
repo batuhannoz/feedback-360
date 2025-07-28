@@ -32,6 +32,10 @@ const deletePeriod = (periodId) => {
     return apiClient.delete(`/period/${periodId}`);
 };
 
+const getPeriodDetails = (periodId) => {
+    return apiClient.get(`/period/${periodId}/details`);
+};
+
 export default {
     createPeriod,
     getPeriods,
@@ -40,5 +44,6 @@ export default {
     updatePeriodStatus,
     deletePeriod,
     getCompetencyWeights,
-    setCompetencyWeights
+    setCompetencyWeights,
+    getPeriodDetails
 };
