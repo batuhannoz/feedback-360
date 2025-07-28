@@ -92,6 +92,9 @@ const EmployeeDetailPage = () => {
                         {user.isActive ? 'Aktif' : 'Pasif'}
                     </Badge>
                 </div>
+                <Button onClick={() => navigate(`/dashboard/employees/${userId}/report`)}>
+                    Raporu Görüntüle
+                </Button>
             </div>
 
             <div className="grid md:grid-cols-2 gap-8">

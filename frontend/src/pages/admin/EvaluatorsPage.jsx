@@ -5,9 +5,9 @@ import { toast } from 'react-toastify';
 import {Button} from "../../components/ui/button.jsx";
 
 const evaluatorTypeTranslations = {
-    MANAGER: 'Müdür',
+    MANAGER: 'Yönetici',
     SUBORDINATE: 'Ast',
-    PEER: 'Akran',
+    PEER: 'Eş Değer',
     SELF: 'Kendisi',
     OTHER: 'Diğer'
 };
@@ -20,7 +20,6 @@ const EvaluatorsPage = () => {
         if (selectedPeriod) {
             getEvaluatorsByPeriodId(selectedPeriod.id)
                 .then(response => {
-                    // Güvenlik için gelen verinin `name` alanı null ise boş string'e çevirelim
                     const formattedData = response.data.map(e => ({...e, name: e.name || evaluatorTypeTranslations[e.type] || ''}));
                     setEvaluators(formattedData);
                 })

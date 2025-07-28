@@ -16,9 +16,9 @@ import {toast} from 'sonner';
 import {StrictModeDroppable} from "../../components/StrictModeDroppable.tsx";
 
 const evaluatorTypeTranslations = {
-    MANAGER: 'Müdür',
+    MANAGER: 'Yönetici',
     SUBORDINATE: 'Ast',
-    PEER: 'Akran',
+    PEER: 'Eş Değer',
     SELF: 'Kendisi',
     OTHER: 'Diğer'
 };
@@ -331,7 +331,7 @@ const ParticipantsPage = () => {
                             return (
                                 <div key={column.id}>
                                     <h3 className="font-semibold">{column.title}</h3>
-                                    <StrictModeDroppable droppableId={column.id.toString()}>
+                                    <StrictModeDroppable droppableId={column.id.toString()} direction="vertical">
                                         {(provided, snapshot) => (
                                             <div
                                                 ref={provided.innerRef}
@@ -382,7 +382,7 @@ const ParticipantsPage = () => {
                             onChange={(e) => setAssignmentSearchTerm(e.target.value)}
                             className="mb-4"
                         />
-                        <StrictModeDroppable droppableId="available">
+                        <StrictModeDroppable droppableId="available" direction="vertical">
                             {(provided, snapshot) => (
                                 <div
                                     ref={provided.innerRef}

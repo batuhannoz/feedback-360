@@ -31,6 +31,7 @@ import EvaluationPeriodDetailPage from './pages/admin/EvaluationPeriodDetailPage
 
 import './App.css';
 import SourceWeightsPage from "./pages/admin/SourceWeightsPage.jsx";
+import EmployeeReportPage from "./pages/admin/EmployeeReportPage.jsx";
 
 function App() {
     const { user, role } = useSelector((state) => state.auth);
@@ -63,6 +64,7 @@ function App() {
                             <Route index element={<DashboardPage />} />
                             <Route path="employees" element={<EmployeesPage />} />
                             <Route path="employees/:userId" element={<EmployeeDetailPage />} />
+                            <Route path="employees/:userId/report" element={<EmployeeReportPage />} />
                             <Route path="assignments/:assignmentId/answers" element={<AssignmentAnswersPage />} />
                             <Route path="start-period" element={<StartPeriodPage />} />
                             <Route path="evaluators" element={<EvaluatorsPage/>} />

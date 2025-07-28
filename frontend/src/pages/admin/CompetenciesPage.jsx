@@ -18,11 +18,11 @@ import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '../
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from '../../components/ui/table';
 
 const evaluatorTypeTranslations = {
-    MANAGER: 'Müdür',
+    MANAGER: 'Yönetici',
     SUBORDINATE: 'Ast',
-    PEER: 'Akran',
-    OTHER: 'Diğer',
-    SELF: 'Kendisi'
+    PEER: 'Eş Değer',
+    SELF: 'Kendisi',
+    OTHER: 'Diğer'
 };
 
 const CompetenciesPage = () => {
