@@ -21,7 +21,6 @@ const authSlice = createSlice({
             state.accessToken = action.payload.accessToken;
             state.refreshToken = action.payload.refreshToken;
             state.role = decodedToken.role;
-            console.log(state.role)
             localStorage.setItem('accessToken', action.payload.accessToken);
         },
         logout(state) {

@@ -8,7 +8,8 @@ import CompanySignUpPage from './pages/auth/CompanySignUpPage.jsx';
 import AcceptInvitationPage from './pages/auth/AcceptInvitationPage.jsx';
 import UnauthorizedPage from './pages/UnauthorizedPage.jsx';
 
-import AdminLayout from './components/layout/AdminLayout.jsx';
+import AdminLayout from './components/layout/admin/AdminLayout.jsx';
+import EmployeeLayout from './components/layout/employee/EmployeeLayout.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
 
 import DashboardPage from './pages/admin/DashboardPage.jsx';
@@ -19,7 +20,6 @@ import StartPeriodPage from './pages/admin/StartPeriodPage.jsx';
 import MyPeriodsPage from './pages/user/MyPeriodsPage.jsx';
 import MyAssignmentsPage from './pages/user/MyAssignmentsPage.jsx';
 import EvaluationPage from './pages/user/EvaluationPage.jsx';
-import ReportsPage from './pages/admin/ReportsPage.jsx';
 import SettingsPage from './pages/admin/SettingsPage.jsx';
 import EvaluationsPage from './pages/admin/EvaluationsPage.jsx';
 import ParticipantsPage from './pages/admin/ParticipantsPage.jsx';
@@ -38,6 +38,7 @@ function App() {
 
     const getDefaultRoute = () => {
         if (!user) return '/sign-in';
+        console.log(role)
         if (role === 'ROLE_ADMIN') return '/dashboard';
         if (role === 'ROLE_EMPLOYEE') return '/my-evaluations';
     };
@@ -54,9 +55,11 @@ function App() {
 
                 <Route element={<ProtectedRoute allowedRoles={['ROLE_ADMIN', 'ROLE_COMPANY_OWNER', 'ROLE_EMPLOYEE']} />}>
                     {/* User-facing routes */}
-                    <Route path="/my-evaluations" element={<MyPeriodsPage />} />
-                    <Route path="/my-evaluations/:periodId/assignments" element={<MyAssignmentsPage />} />
-                    <Route path="/my-evaluations/:periodId/assignments/:evaluatedUserId" element={<EvaluationPage />} />
+                    <Route element={<EmployeeLayout />}>
+                        <Route path="/my-evaluations" element={<MyPeriodsPage />} />
+                        <Route path="/my-evaluations/:periodId/assignments" element={<MyAssignmentsPage />} />
+                        <Route path="/my-evaluations/:periodId/assignments/:evaluatedUserId" element={<EvaluationPage />} />
+                    </Route>
 
                     {/* Admin-only routes */}
                     <Route element={<ProtectedRoute allowedRoles={['ROLE_ADMIN', 'ROLE_COMPANY_OWNER']} />}>
@@ -68,7 +71,6 @@ function App() {
                             <Route path="assignments/:assignmentId/answers" element={<AssignmentAnswersPage />} />
                             <Route path="start-period" element={<StartPeriodPage />} />
                             <Route path="evaluators" element={<EvaluatorsPage/>} />
-                            <Route path="reports" element={<ReportsPage />} />
                             <Route path="settings" element={<SettingsPage />} />
                             <Route path="evaluations" element={<EvaluationsPage />} />
                             <Route path="evaluations/:periodId" element={<EvaluationPeriodDetailPage />} />

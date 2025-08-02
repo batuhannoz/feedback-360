@@ -1,7 +1,7 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { FiHome, FiUsers, FiBarChart2, FiSettings, FiClipboard, FiCheckSquare, FiStar, FiFileText } from 'react-icons/fi';
-import logo from '../../assets/icons/logo.png';
+import logo from '../../../assets/icons/logo.png';
 
 const Sidebar = () => {
     return (
@@ -16,9 +16,6 @@ const Sidebar = () => {
                 </NavLink>
                 <NavLink to="/dashboard/employees" className="flex items-center px-4 py-2 mt-2 text-gray-700 hover:bg-gray-200" activeClassName="bg-gray-300">
                     <FiUsers className="mr-2" /> Çalışanlar
-                </NavLink>
-                <NavLink to="/dashboard/reports" className="flex items-center px-4 py-2 mt-2 text-gray-700 hover:bg-gray-200" activeClassName="bg-gray-300">
-                    <FiBarChart2 className="mr-2" /> Raporlar
                 </NavLink>
                 <NavLink to="/dashboard/settings" className="flex items-center px-4 py-2 mt-2 text-gray-700 hover:bg-gray-200" activeClassName="bg-gray-300">
                     <FiSettings className="mr-2" /> Ayarlar

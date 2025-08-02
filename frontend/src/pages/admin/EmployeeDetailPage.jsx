@@ -45,42 +45,50 @@ const EmployeeDetailPage = () => {
 
     const { user, evaluationsMade, evaluationsReceived } = assignments;
 
-    const AssignmentList = ({ title, data, isEvaluationsMade }) => (
-        <Card>
-            <CardHeader>
-                <CardTitle>{title}</CardTitle>
-            </CardHeader>
-            <CardContent>
-                {data.length > 0 ? (
-                    <ul className="space-y-4">
-                        {data.map(assignment => (
-                            <li key={assignment.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-md">
-                                <div>
-                                    <p className="font-semibold">{`${assignment.evaluatorUser.firstName} ${assignment.evaluatorUser.lastName}`}</p>
-                                    <p className="text-sm text-gray-500">{assignment.evaluator.name}</p>
-                                </div>
-                                <Button 
-                                    variant="outline" 
-                                    size="sm" 
-                                    onClick={() => navigate(`/dashboard/assignments/${assignment.id}/answers`, {
-                                        state: {
-                                            user: isEvaluationsMade ? assignment.evaluatorUser : user,
-                                            evaluatorUser: isEvaluationsMade ? user : assignment.evaluatorUser,
-                                            evaluator: assignment.evaluator
-                                        }
-                                    })}
-                                >
-                                    Yanıtları Gör
-                                </Button>
-                            </li>
-                        ))}
-                    </ul>
-                ) : (
-                    <p className="text-gray-500">Bu kategori için değerlendirme bulunmamaktadır.</p>
-                )}
-            </CardContent>
-        </Card>
-    );
+    const AssignmentList = ({ title, data, isEvaluationsMade }) => {
+        const navigate = useNavigate();
+
+        return (
+            <Card>
+                <CardHeader>
+                    <CardTitle>{title}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    {data && data.length > 0 ? (
+                        <ul className="space-y-4">
+                            {data.map(assignment => {
+                                const displayUser = isEvaluationsMade ? assignment.evaluatedUser : assignment.evaluatorUser;
+
+                                if (!displayUser) {
+                                    return null;
+                                }
+
+                                return (
+                                    <li key={assignment.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800 rounded-md">
+                                        <div>
+                                            <p className="font-semibold">{`${displayUser.firstName} ${displayUser.lastName}`}</p>
+                                            <p className="text-sm text-gray-500 dark:text-gray-400">{assignment.evaluator.name}</p>
+                                        </div>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => navigate(`/dashboard/assignments/${assignment.id}/answers`, {
+                                                state: { assignment }
+                                            })}
+                                        >
+                                            Yanıtları Gör
+                                        </Button>
+                                    </li>
+                                );
+                            })}
+                        </ul>
+                    ) : (
+                        <p className="text-gray-500 dark:text-gray-400">Bu kategori için değerlendirme bulunmamaktadır.</p>
+                    )}
+                </CardContent>
+            </Card>
+        );
+    };
 
     return (
         <div className="p-8 bg-gray-50 min-h-screen">
@@ -92,7 +100,7 @@ const EmployeeDetailPage = () => {
                         {user.isActive ? 'Aktif' : 'Pasif'}
                     </Badge>
                 </div>
-                <Button onClick={() => navigate(`/dashboard/employees/${userId}/report`)}>
+                <Button className="mt-4" onClick={() => navigate(`/dashboard/employees/${userId}/report`)}>
                     Raporu Görüntüle
                 </Button>
             </div>

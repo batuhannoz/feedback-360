@@ -6,20 +6,20 @@ const ScoresByEvaluator = ({ scores }) => {
     return (
         <Card>
             <CardHeader>
-                <CardTitle>Değerleyici Türüne Göre Puanlar</CardTitle>
+                <CardTitle>Kaynak Türüne Göre Puanlar</CardTitle>
             </CardHeader>
             <CardContent>
                 <Table>
                     <TableHeader>
                         <TableRow>
-                            <TableHead>Değerleyici</TableHead>
+                            <TableHead>Kaynak</TableHead>
                             <TableHead className="text-right">Puan</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
                         {scores.map((score, index) => (
                             <TableRow key={index}>
-                                <TableCell>{score.evaluatorName}</TableCell>
+                                <TableCell>{score.evaluatorName ? score.evaluatorName : score.evaluatorType}</TableCell>
                                 <TableCell className="text-right">{score.averageScore.toFixed(2)}</TableCell>
                             </TableRow>
                         ))}

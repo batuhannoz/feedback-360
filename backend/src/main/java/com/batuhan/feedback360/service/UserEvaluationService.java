@@ -2,7 +2,6 @@ package com.batuhan.feedback360.service;
 
 import com.batuhan.feedback360.config.AuthenticationPrincipalResolver;
 import com.batuhan.feedback360.model.converter.AnswerConverter;
-import com.batuhan.feedback360.model.converter.CompetencyConverter;
 import com.batuhan.feedback360.model.converter.EvaluationPeriodConverter;
 import com.batuhan.feedback360.model.converter.QuestionConverter;
 import com.batuhan.feedback360.model.converter.UserConverter;
@@ -49,13 +48,11 @@ public class UserEvaluationService {
     private final UserRepository userRepository;
     private final MessageHandler messageHandler;
     private final AuthenticationPrincipalResolver principalResolver;
-    private final EmailService emailService;
     private final CompanyRepository companyRepository;
     private final UserConverter userConverter;
     private final EvaluationPeriodConverter evaluationPeriodConverter;
     private final PeriodParticipantRepository periodParticipantRepository;
     private final EvaluationAssignmentRepository evaluationAssignmentRepository;
-    private final CompetencyConverter competencyConverter;
     private final EvaluationPeriodRepository evaluationPeriodRepository;
     private final QuestionConverter questionConverter;
     private final AnswerRepository answerRepository;
@@ -82,64 +79,42 @@ public class UserEvaluationService {
     }
 
     public ApiResponse<List<UserDetailResponse>> getEvaluationsForUserPeriod(Integer periodId) {
+        Integer evaluatorUserId = principalResolver.getUserId();
         Optional<EvaluationPeriod> periodOpt = evaluationPeriodRepository.findByIdAndCompanyId(periodId, principalResolver.getCompanyId());
-        if (periodOpt.isEmpty()) {
-            return ApiResponse.failure(messageHandler.getMessage("evaluation-period.not-found"));
-        }
-        if (periodOpt.get().getStatus() != PeriodStatus.IN_PROGRESS) {
+        if (periodOpt.isEmpty() || periodOpt.get().getStatus() != PeriodStatus.IN_PROGRESS) {
             return ApiResponse.failure(messageHandler.getMessage("evaluation.period.not-in-progress"));
         }
 
-        List<EvaluationAssignment> assignments = evaluationAssignmentRepository.findAllByEvaluatorUser_IdAndPeriodParticipant_Period_Id(principalResolver.getUserId(), periodId);
+        List<EvaluationAssignment> assignments = evaluationAssignmentRepository.findAllByEvaluatorUser_IdAndPeriodParticipant_Period_Id(evaluatorUserId, periodId);
 
         if (assignments.isEmpty()) {
             return ApiResponse.success(Collections.emptyList(), messageHandler.getMessage("user.tasks.get.no-tasks"));
         }
 
-        List<UserDetailResponse> evaluatedUsers = assignments.stream()
+        List<UserDetailResponse> unevaluatedUsers = assignments.stream()
             .map(assignment -> assignment.getPeriodParticipant().getEvaluatedUser())
             .distinct()
+            .filter(evaluatedUser -> !hasEvaluationBeenSubmitted(evaluatorUserId, evaluatedUser.getId(), periodId))
             .map(userConverter::toUserDetailResponse)
             .sorted(Comparator.comparing(UserDetailResponse::getFirstName))
             .toList();
 
-        return ApiResponse.success(evaluatedUsers, messageHandler.getMessage("user.tasks.users.get.success"));
+        return ApiResponse.success(unevaluatedUsers, messageHandler.getMessage("user.tasks.users.get.success"));
     }
 
     public ApiResponse<List<QuestionResponse>> getQuestionsForEvaluatedUser(Integer periodId, Integer evaluatedUserId) {
         Integer evaluatorUserId = principalResolver.getUserId();
-        Optional<EvaluationPeriod> periodOpt = evaluationPeriodRepository.findByIdAndCompanyId(periodId, principalResolver.getCompanyId());
-        if (periodOpt.isEmpty()) {
-            return ApiResponse.failure(messageHandler.getMessage("evaluation-period.not-found"));
-        }
-        if (periodOpt.get().getStatus() != PeriodStatus.IN_PROGRESS) {
-            return ApiResponse.failure(messageHandler.getMessage("evaluation.period.not-in-progress"));
-        }
-        if (validateUserIsAssignedToEvaluate(periodId, evaluatorUserId, evaluatedUserId).isEmpty()) {
-            return ApiResponse.failure(messageHandler.getMessage("user.tasks.permission.denied"));
+        Optional<ApiResponse<List<QuestionResponse>>> validationResponse = validateEvaluationState(periodId, evaluatorUserId, evaluatedUserId);
+        if (validationResponse.isPresent()) {
+            return validationResponse.get();
         }
 
-        List<EvaluationAssignment> userAssignments = evaluationAssignmentRepository.findAllByEvaluatorUser_IdAndPeriodParticipant_Period_IdAndPeriodParticipant_EvaluatedUser_Id(
-            evaluatorUserId, periodId, evaluatedUserId
-        );
-
-        List<Integer> evaluatorRoleIds = userAssignments.stream()
-            .map(assignment -> assignment.getEvaluator().getId())
-            .distinct()
-            .toList();
-
-        List<CompetencyEvaluatorPermission> permissions = competencyEvaluatorPermissionRepository.findByPeriod_IdAndEvaluator_IdIn(periodId, evaluatorRoleIds);
-        Set<Integer> permittedCompetencyIds = permissions.stream()
-            .map(p -> p.getCompetency().getId())
-            .collect(Collectors.toSet());
-
-        if (permittedCompetencyIds.isEmpty()) {
+        List<Question> permittedQuestions = getPermittedQuestions(periodId, evaluatorUserId, evaluatedUserId);
+        if (permittedQuestions.isEmpty()) {
             return ApiResponse.success(Collections.emptyList(), messageHandler.getMessage("user.tasks.get.success"));
         }
 
-        List<Question> questions = questionRepository.findByCompetency_IdIn(permittedCompetencyIds);
-
-        List<QuestionResponse> questionResponses = questions.stream()
+        List<QuestionResponse> questionResponses = permittedQuestions.stream()
             .map(questionConverter::toQuestionResponse)
             .toList();
 
@@ -155,23 +130,85 @@ public class UserEvaluationService {
     ) {
         Integer evaluatorUserId = principalResolver.getUserId();
 
-        EvaluationPeriod period = evaluationPeriodRepository.findByIdAndCompanyId(periodId, principalResolver.getCompanyId())
-            .orElse(null);
-        if (period == null || period.getStatus() != PeriodStatus.IN_PROGRESS) {
-            return ApiResponse.failure(messageHandler.getMessage("evaluation.period.not-in-progress"));
-        }
-        if (!userRepository.existsById(evaluatedUserId)) {
-            return ApiResponse.failure(messageHandler.getMessage("user.not-found"));
+        Optional<ApiResponse<List<AnswerResponse>>> prerequisiteValidation = validateSubmissionPrerequisites(periodId, evaluatedUserId, evaluatorUserId);
+        if (prerequisiteValidation.isPresent()) {
+            return prerequisiteValidation.get();
         }
 
         List<EvaluationAssignment> assignments = evaluationAssignmentRepository.findAllByEvaluatorUser_IdAndPeriodParticipant_Period_IdAndPeriodParticipant_EvaluatedUser_Id(
-            evaluatorUserId, periodId, evaluatedUserId
-        );
+            evaluatorUserId, periodId, evaluatedUserId);
         if (assignments.isEmpty()) {
             return ApiResponse.failure(messageHandler.getMessage("evaluation.assignment.not-found"));
         }
 
-        List<Integer> evaluatorRoleIds = assignments.stream()
+        List<Question> permittedQuestions = getPermittedQuestions(periodId, evaluatorUserId, evaluatedUserId);
+        Map<Integer, Question> questionMap = permittedQuestions.stream().collect(Collectors.toMap(Question::getId, q -> q));
+
+        Optional<ApiResponse<List<AnswerResponse>>> requestValidation = validateAnswerRequests(answerRequests, questionMap);
+        if (requestValidation.isPresent()) {
+            return requestValidation.get();
+        }
+
+        List<Answer> newAnswersToSave = createAnswersFromRequests(answerRequests, assignments, questionMap, periodId);
+
+        List<Answer> savedAnswers = answerRepository.saveAll(newAnswersToSave);
+        List<AnswerResponse> response = savedAnswers.stream()
+            .map(answerConverter::toAnswerResponse)
+            .collect(Collectors.toList());
+
+        return ApiResponse.success(response, messageHandler.getMessage("evaluation.submit.success"));
+    }
+
+    private boolean hasEvaluationBeenSubmitted(Integer evaluatorUserId, Integer evaluatedUserId, Integer periodId) {
+        return answerRepository.existsByAssignment_EvaluatorUser_IdAndAssignment_PeriodParticipant_EvaluatedUser_IdAndAssignment_PeriodParticipant_Period_Id(
+            evaluatorUserId, evaluatedUserId, periodId
+        );
+    }
+
+    private Optional<ApiResponse<List<QuestionResponse>>> validateEvaluationState(Integer periodId, Integer evaluatorUserId, Integer evaluatedUserId) {
+        Optional<EvaluationPeriod> periodOpt = evaluationPeriodRepository.findByIdAndCompanyId(periodId, principalResolver.getCompanyId());
+        if (periodOpt.isEmpty() || periodOpt.get().getStatus() != PeriodStatus.IN_PROGRESS) {
+            return Optional.of(ApiResponse.failure(messageHandler.getMessage("evaluation.period.not-in-progress")));
+        }
+        if (validateUserIsAssignedToEvaluate(periodId, evaluatorUserId, evaluatedUserId).isEmpty()) {
+            return Optional.of(ApiResponse.failure(messageHandler.getMessage("user.tasks.permission.denied")));
+        }
+        if (hasEvaluationBeenSubmitted(evaluatorUserId, evaluatedUserId, periodId)) {
+            // Yeni bir hata mesajı anahtarı eklenmeli (örn: evaluation.already.submitted)
+            return Optional.of(ApiResponse.failure(messageHandler.getMessage("evaluation.already.submitted")));
+        }
+        return Optional.empty();
+    }
+
+    /**
+     * Cevap gönderme işlemi için periyot, kullanıcı ve gönderim durumu gibi ön koşulları kontrol eder.
+     */
+    private Optional<ApiResponse<List<AnswerResponse>>> validateSubmissionPrerequisites(Integer periodId, Integer evaluatedUserId, Integer evaluatorUserId) {
+        EvaluationPeriod period = evaluationPeriodRepository.findByIdAndCompanyId(periodId, principalResolver.getCompanyId()).orElse(null);
+        if (period == null || period.getStatus() != PeriodStatus.IN_PROGRESS) {
+            return Optional.of(ApiResponse.failure(messageHandler.getMessage("evaluation.period.not-in-progress")));
+        }
+        if (!userRepository.existsById(evaluatedUserId)) {
+            return Optional.of(ApiResponse.failure(messageHandler.getMessage("user.not-found")));
+        }
+        if (hasEvaluationBeenSubmitted(evaluatorUserId, evaluatedUserId, periodId)) {
+            return Optional.of(ApiResponse.failure(messageHandler.getMessage("evaluation.already.submitted")));
+        }
+        return Optional.empty();
+    }
+
+    /**
+     * Değerlendiricinin belirli bir kullanıcı için yanıtlamasına izin verilen soruların listesini döndürür.
+     */
+    private List<Question> getPermittedQuestions(Integer periodId, Integer evaluatorUserId, Integer evaluatedUserId) {
+        List<EvaluationAssignment> userAssignments = evaluationAssignmentRepository.findAllByEvaluatorUser_IdAndPeriodParticipant_Period_IdAndPeriodParticipant_EvaluatedUser_Id(
+            evaluatorUserId, periodId, evaluatedUserId
+        );
+        if (userAssignments.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        List<Integer> evaluatorRoleIds = userAssignments.stream()
             .map(assignment -> assignment.getEvaluator().getId())
             .distinct()
             .toList();
@@ -181,42 +218,44 @@ public class UserEvaluationService {
             .map(p -> p.getCompetency().getId())
             .collect(Collectors.toSet());
 
-        List<Question> permittedQuestions = questionRepository.findByCompetency_IdIn(permittedCompetencyIds);
-        Set<Integer> permittedQuestionIds = permittedQuestions.stream().map(Question::getId).collect(Collectors.toSet());
-
-        Set<Integer> requestQuestionIds = answerRequests.stream().map(AnswerSubmissionRequest::getQuestionId).collect(Collectors.toSet());
-
-        if (!permittedQuestionIds.equals(requestQuestionIds)) {
-            return ApiResponse.failure(messageHandler.getMessage("evaluation.question.mismatch"));
+        if (permittedCompetencyIds.isEmpty()) {
+            return Collections.emptyList();
         }
 
-        Map<Integer, Question> questionMap = permittedQuestions.stream()
-            .collect(Collectors.toMap(Question::getId, q -> q));
+        return questionRepository.findByCompetency_IdIn(permittedCompetencyIds);
+    }
 
-        for (AnswerSubmissionRequest req : answerRequests) {
+    private Optional<ApiResponse<List<AnswerResponse>>> validateAnswerRequests(List<AnswerSubmissionRequest> requests, Map<Integer, Question> questionMap) {
+        Set<Integer> requestQuestionIds = requests.stream().map(AnswerSubmissionRequest::getQuestionId).collect(Collectors.toSet());
+
+        if (!questionMap.keySet().equals(requestQuestionIds)) {
+            return Optional.of(ApiResponse.failure(messageHandler.getMessage("evaluation.question.mismatch")));
+        }
+
+        for (AnswerSubmissionRequest req : requests) {
             Question question = questionMap.get(req.getQuestionId());
 
             if (question.getHiddenScores().contains(req.getScore())) {
-                return ApiResponse.failure(
-                    messageHandler.getMessage("evaluation.hidden.score.not-allowed", req.getScore(), question.getId())
-                );
+                return Optional.of(ApiResponse.failure(messageHandler.getMessage("evaluation.hidden.score.not-allowed", req.getScore(), question.getId())));
             }
 
             boolean isCommentRequired = question.getScoresRequiringComment().contains(req.getScore());
             boolean isCommentMissing = (req.getAnswerText() == null || req.getAnswerText().isBlank());
 
             if (isCommentRequired && isCommentMissing) {
-                return ApiResponse.failure(
-                    messageHandler.getMessage("evaluation.comment.required", req.getScore(), question.getId())
-                );
+                return Optional.of(ApiResponse.failure(messageHandler.getMessage("evaluation.comment.required", req.getScore(), question.getId())));
             }
         }
-        answerRepository.deleteAllByAssignmentIn(assignments);
-        answerRepository.flush();
+        return Optional.empty();
+    }
 
+    private List<Answer> createAnswersFromRequests(List<AnswerSubmissionRequest> requests, List<EvaluationAssignment> assignments, Map<Integer, Question> questionMap, Integer periodId) {
         Map<Integer, List<EvaluationAssignment>> competencyToAssignmentsMap = new HashMap<>();
         Map<Integer, EvaluationAssignment> roleIdToAssignmentMap = assignments.stream()
             .collect(Collectors.toMap(a -> a.getEvaluator().getId(), a -> a));
+
+        List<Integer> evaluatorRoleIds = new ArrayList<>(roleIdToAssignmentMap.keySet());
+        List<CompetencyEvaluatorPermission> permissions = competencyEvaluatorPermissionRepository.findByPeriod_IdAndEvaluator_IdIn(periodId, evaluatorRoleIds);
 
         for (CompetencyEvaluatorPermission p : permissions) {
             competencyToAssignmentsMap
@@ -225,7 +264,7 @@ public class UserEvaluationService {
         }
 
         List<Answer> newAnswersToSave = new ArrayList<>();
-        for (AnswerSubmissionRequest req : answerRequests) {
+        for (AnswerSubmissionRequest req : requests) {
             Question question = questionMap.get(req.getQuestionId());
             List<EvaluationAssignment> relevantAssignments = competencyToAssignmentsMap.get(question.getCompetency().getId());
 
@@ -240,14 +279,7 @@ public class UserEvaluationService {
                 }
             }
         }
-
-        List<Answer> savedAnswers = answerRepository.saveAll(newAnswersToSave);
-
-        List<AnswerResponse> response = savedAnswers.stream()
-            .map(answerConverter::toAnswerResponse)
-            .collect(Collectors.toList());
-
-        return ApiResponse.success(response, messageHandler.getMessage("evaluation.submit.success"));
+        return newAnswersToSave;
     }
 
     private Optional<EvaluationAssignment> validateUserIsAssignedToEvaluate(Integer periodId, Integer evaluatorUserId, Integer evaluatedUserId) {

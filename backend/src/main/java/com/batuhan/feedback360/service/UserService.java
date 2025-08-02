@@ -148,11 +148,13 @@ public class UserService {
         if (!periodRepository.existsByIdAndCompanyId(periodId, principalResolver.getCompanyId())) {
             return ApiResponse.failure(messageHandler.getMessage("evaluation-period.not-found"));
         }
+
         Company company = companyRepository.getReferenceById(principalResolver.getCompanyId());
         Optional<User> userOpt = userRepository.findByIdAndCompany(userId, company);
         if (userOpt.isEmpty()) {
             return ApiResponse.failure(messageHandler.getMessage("user.not-found"));
         }
+        User user = userOpt.get();
 
         List<EvaluationAssignment> madeAssignments = evaluationAssignmentRepository.findAllByEvaluatorUser_IdAndPeriodParticipant_Period_Id(userId, periodId);
         List<AssignmentResponse> madeResponses = madeAssignments.stream()
@@ -165,7 +167,7 @@ public class UserService {
             .toList();
 
         UserAssignmentsResponse response = UserAssignmentsResponse.builder()
-            .user(userConverter.toUserResponse(userOpt.get()))
+            .user(userConverter.toUserResponse(user))
             .evaluationsMade(madeResponses)
             .evaluationsReceived(receivedResponses)
             .build();

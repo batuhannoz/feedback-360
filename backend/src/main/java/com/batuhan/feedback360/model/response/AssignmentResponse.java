@@ -14,5 +14,6 @@ import lombok.Setter;
 public class AssignmentResponse {
     private Integer id;
     private ParticipantResponse evaluatorUser;
+    private ParticipantResponse evaluatedUser;
     private EvaluatorResponse evaluator;
 }

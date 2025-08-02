@@ -20,6 +20,7 @@ public class AssignmentConverter {
         return AssignmentResponse.builder()
             .id(assignment.getId())
             .evaluatorUser(userConverter.toParticipantResponse(assignment.getEvaluatorUser()))
+            .evaluatedUser(userConverter.toParticipantResponse(assignment.getPeriodParticipant().getEvaluatedUser()))
             .evaluator(evaluatorConverter.toEvaluatorResponse(assignment.getEvaluator()))
             .build();
     }

@@ -36,7 +36,14 @@ const EvaluatorsPage = () => {
     };
 
     const handleSave = () => {
-        const updateRequest = evaluators.map(e => ({ id: e.id, name: e.name, type: e.type }));
+        const updateRequest = evaluators.map(e => ({
+            id: e.id,
+            name: e.name,
+            evaluatorType: e.evaluatorType
+        }));
+
+        console.log("Gönderilen İstek:", updateRequest);
+
         setEvaluatorsByPeriodId(selectedPeriod.id, updateRequest)
             .then(() => {
                 toast.success('Kaynak isimleri başarıyla güncellendi.');

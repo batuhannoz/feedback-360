@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { FiChevronDown, FiUser, FiLogOut } from 'react-icons/fi';
-import { fetchPeriods, setSelectedPeriod } from '../../store/periodSlice';
-import { logout } from '../../store/authSlice';
-import { cn } from '../../lib/utils';
+import { fetchPeriods, setSelectedPeriod } from '../../../store/periodSlice.js';
+import { logout } from '../../../store/authSlice.js';
+import { cn } from '../../../lib/utils.js';
 
 const Header = () => {
     const [dropdownOpen, setDropdownOpen] = useState(false);

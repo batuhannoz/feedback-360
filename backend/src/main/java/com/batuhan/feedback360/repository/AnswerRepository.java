@@ -15,4 +15,8 @@ public interface AnswerRepository extends JpaRepository<Answer, Integer> {
 
     List<Answer> findAllByAssignment_PeriodParticipant_Period_IdAndAssignment_PeriodParticipant_EvaluatedUser_Id(Integer assignmentPeriodParticipantPeriodId,
                                                                                                                  Integer assignmentPeriodParticipantEvaluatedUserId);
+
+    boolean existsByAssignment_EvaluatorUser_IdAndAssignment_PeriodParticipant_EvaluatedUser_IdAndAssignment_PeriodParticipant_Period_Id(Integer assignmentEvaluatorUserId,
+                                                                                                                                         Integer assignmentPeriodParticipantEvaluatedUserId,
+                                                                                                                                         Integer assignmentPeriodParticipantPeriodId);
 }
