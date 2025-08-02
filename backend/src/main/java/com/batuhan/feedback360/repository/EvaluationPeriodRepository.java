@@ -16,4 +16,6 @@ public interface EvaluationPeriodRepository extends JpaRepository<EvaluationPeri
     List<EvaluationPeriod> findByCompanyOrderByCreatedAtDesc(Company company);
 
     Optional<EvaluationPeriod> findByIdAndCompany(Integer periodId, Company company);
+
+    List<EvaluationPeriod> findAllByCompany_Id(Integer companyId);
 }

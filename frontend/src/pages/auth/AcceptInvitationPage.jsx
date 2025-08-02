@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
+import React, {useEffect, useState} from 'react';
+import {useNavigate, useSearchParams} from 'react-router-dom';
+import {toast} from 'sonner';
 
 import AuthService from '../../services/authService';
 
@@ -8,8 +8,6 @@ const AcceptInvitationPage = () => {
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
 
-    const [name, setName] = useState('');
-    const [surname, setSurname] = useState('');
     const [password, setPassword] = useState('');
     const [email, setEmail] = useState('');
     const [token, setToken] = useState('');
@@ -30,7 +28,7 @@ const AcceptInvitationPage = () => {
     const handleAcceptInvitation = async (e) => {
         e.preventDefault();
         try {
-            await AuthService.completeInvitation({ name, surname, email, password, token });
+            await AuthService.completeInvitation({ password, invitationToken: token });
             toast.success('Invitation accepted successfully! You can now log in.');
             navigate('/sign-in');
         } catch (error) {
@@ -50,26 +48,6 @@ const AcceptInvitationPage = () => {
                             className="w-full px-3 py-2 border rounded-lg bg-gray-200"
                             value={email}
                             readOnly
-                        />
-                    </div>
-                    <div className="mb-4">
-                        <label className="block text-gray-700">Name</label>
-                        <input
-                            type="text"
-                            className="w-full px-3 py-2 border rounded-lg"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            required
-                        />
-                    </div>
-                    <div className="mb-4">
-                        <label className="block text-gray-700">Surname</label>
-                        <input
-                            type="text"
-                            className="w-full px-3 py-2 border rounded-lg"
-                            value={surname}
-                            onChange={(e) => setSurname(e.target.value)}
-                            required
                         />
                     </div>
                     <div className="mb-6">

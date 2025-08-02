@@ -1,12 +1,12 @@
-import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import UserEvaluationService from '../../services/userEvaluationService';
-import { toast } from 'react-toastify';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../components/ui/card';
-import { Button } from '../../components/ui/button';
-import { Textarea } from '../../components/ui/textarea';
-import { Label } from '../../components/ui/label';
-import { ArrowLeft } from 'lucide-react';
+import React, {useEffect, useState} from 'react';
+import {useNavigate, useParams} from 'react-router-dom';
+import UserEvaluationService from '../../services/userEvaluationService.js';
+import {toast} from 'react-toastify';
+import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '../../components/ui/card.jsx';
+import {Button} from '../../components/ui/button.jsx';
+import {Textarea} from '../../components/ui/textarea.jsx';
+import {Label} from '../../components/ui/label.jsx';
+import {ArrowLeft} from 'lucide-react';
 
 const EvaluationPage = () => {
     const { periodId, evaluatedUserId } = useParams();

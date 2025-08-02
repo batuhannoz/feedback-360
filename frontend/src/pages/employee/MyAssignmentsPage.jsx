@@ -1,10 +1,10 @@
-import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import UserEvaluationService from '../../services/userEvaluationService';
-import { toast } from 'react-toastify';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../components/ui/card';
-import { Button } from '../../components/ui/button';
-import { ArrowLeft, ChevronRight } from 'lucide-react';
+import React, {useEffect, useState} from 'react';
+import {useNavigate, useParams} from 'react-router-dom';
+import UserEvaluationService from '../../services/userEvaluationService.js';
+import {toast} from 'react-toastify';
+import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '../../components/ui/card.jsx';
+import {Button} from '../../components/ui/button.jsx';
+import {ArrowLeft, ChevronRight} from 'lucide-react';
 
 const MyAssignmentsPage = () => {
     const { periodId } = useParams();

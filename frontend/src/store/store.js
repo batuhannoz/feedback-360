@@ -1,7 +1,7 @@
-import { configureStore, combineReducers } from '@reduxjs/toolkit';
-import { persistStore, persistReducer, FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER } from 'redux-persist';
+import {combineReducers, configureStore} from '@reduxjs/toolkit';
+import {FLUSH, PAUSE, PERSIST, persistReducer, persistStore, PURGE, REGISTER, REHYDRATE} from 'redux-persist';
 import storage from 'redux-persist/lib/storage';
-import authReducer from './authSlice';
+import authReducer, {logout} from './authSlice';
 import periodReducer from './periodSlice';
 
 const persistConfig = {
@@ -10,10 +10,20 @@ const persistConfig = {
     whitelist: ['auth', 'period']
 };
 
-const rootReducer = combineReducers({
+const appReducer = combineReducers({
     auth: authReducer,
     period: periodReducer,
 });
+
+const rootReducer = (state, action) => {
+    if (action.type === logout.type) {
+        storage.removeItem('persist:root');
+        return appReducer(undefined, action);
+    }
+
+    return appReducer(state, action);
+};
+
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);
 

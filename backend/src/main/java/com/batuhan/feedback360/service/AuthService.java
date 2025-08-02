@@ -36,7 +36,7 @@ public class AuthService {
 
     public ApiResponse<Company> companySignUp(CompanySignUpRequest request) {
         if (companyRepository.findByEmail(request.getEmail()).isPresent()) {
-            return ApiResponse.failure(messageHandler.getMessage("auth.company.signup.emailExists"));
+            return ApiResponse.failure(messageHandler.getMessage("auth.company.signup.email-exists"));
         }
         Company company = Company.builder()
             .name(request.getCompanyName())
@@ -65,7 +65,7 @@ public class AuthService {
     public ApiResponse<JwtAuthenticationResponse> signIn(SignInRequest request) {
         User user = userRepository.findByEmail(request.getEmail()).orElse(null);
         if (user == null || !user.getIsActive() || !passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
-            return ApiResponse.failure(messageHandler.getMessage("auth.sign-in.invalidCredentials"));
+            return ApiResponse.failure(messageHandler.getMessage("auth.sign-in.invalid-credentials"));
         }
         String accessToken = jwtService.generateAccessToken(user);
         String refreshToken = jwtService.generateRefreshToken(user);
@@ -80,10 +80,10 @@ public class AuthService {
     public ApiResponse<Void> completeEmployeeInvitation(UserSignUpRequest request) {
         User user = userRepository.findByInvitationToken(request.getInvitationToken()).orElse(null);
         if (user == null) {
-            return ApiResponse.failure(messageHandler.getMessage("auth.signup.invalidToken"));
+            return ApiResponse.failure(messageHandler.getMessage("auth.signup.invalid-token"));
         }
         if (user.getInvitationValidityDate().isBefore(LocalDateTime.now())) {
-            return ApiResponse.failure(messageHandler.getMessage("auth.signup.expiredToken"));
+            return ApiResponse.failure(messageHandler.getMessage("auth.signup.expired-token"));
         }
 
         user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
@@ -101,7 +101,7 @@ public class AuthService {
         String userEmail = jwtService.extractUserName(refreshToken);
         User user = userRepository.findByEmail(userEmail).orElse(null);
         if (user == null) {
-            return ApiResponse.failure(messageHandler.getMessage("auth.refresh.invalidCredentials"));
+            return ApiResponse.failure(messageHandler.getMessage("auth.refresh.invalid-credentials"));
         }
 
         if (jwtService.isTokenValid(refreshToken, user)) {
@@ -113,7 +113,7 @@ public class AuthService {
                 .build();
             return ApiResponse.success(jwtResponse, messageHandler.getMessage("auth.refresh.success"));
         }
-        return ApiResponse.failure(messageHandler.getMessage("auth.refresh.invalidToken"));
+        return ApiResponse.failure(messageHandler.getMessage("auth.refresh.invalid-token"));
     }
 
     public ApiResponse<Void> forgotPassword(ForgotPasswordRequest request) {
@@ -130,7 +130,7 @@ public class AuthService {
     public ApiResponse<Void> resetPassword(ResetPasswordRequest request) {
         User user = userRepository.findByInvitationToken(request.getToken()).orElse(null);
         if (user == null || user.getInvitationValidityDate().isBefore(LocalDateTime.now())) {
-            return ApiResponse.failure(messageHandler.getMessage("auth.au.invalidOrExpiredToken"));
+            return ApiResponse.failure(messageHandler.getMessage("auth.au.invalid-or-expiredToken"));
         }
 
         user.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));

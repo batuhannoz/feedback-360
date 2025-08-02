@@ -1,12 +1,12 @@
-import React, {useState, useEffect, useCallback} from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, {useCallback, useEffect, useState} from 'react';
+import {useNavigate} from 'react-router-dom';
 import UserService from '../../services/userService';
 import {Button} from '../../components/ui/button';
 import {Checkbox} from '../../components/ui/checkbox';
 import {Input} from '../../components/ui/input';
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '../../components/ui/select';
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from '../../components/ui/table';
-import {Plus, Upload, Download} from 'lucide-react';
+import {Download, Edit, Plus, Upload} from 'lucide-react';
 import AddEmployeeModal from '../../components/admin/AddEmployeeModal';
 import EditEmployeeModal from '../../components/admin/EditEmployeeModal';
 
@@ -80,6 +80,11 @@ const EmployeesPage = () => {
             .catch(error => console.error(`Error updating status to ${isActive}:`, error));
     };
 
+    const handleEditClick = (employee) => {
+        setSelectedEmployeeForEdit(employee);
+        setIsEditModalOpen(true);
+    };
+
     return (
         <div className="container mx-auto p-4">
             <div className="flex justify-between items-center mb-4">
@@ -136,11 +141,12 @@ const EmployeesPage = () => {
                             <TableHead>İsim</TableHead>
                             <TableHead>Pozisyon</TableHead>
                             <TableHead>Durum</TableHead>
+                            <TableHead className="text-right">İşlemler</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
                         {employees.map((employee) => (
-                            <TableRow 
+                            <TableRow
                                 key={employee.id}
                                 onClick={() => navigate(`/dashboard/employees/${employee.id}`)}
                                 className="cursor-pointer"
@@ -154,6 +160,18 @@ const EmployeesPage = () => {
                                 <TableCell>{`${employee.firstName} ${employee.lastName}`}</TableCell>
                                 <TableCell>{employee.role}</TableCell>
                                 <TableCell>{employee.isActive ? 'Aktif' : 'Pasif'}</TableCell>
+                                <TableCell className="text-right">
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleEditClick(employee);
+                                        }}
+                                    >
+                                        <Edit className="h-4 w-4"/>
+                                    </Button>
+                                </TableCell>
                             </TableRow>
                         ))}
                     </TableBody>

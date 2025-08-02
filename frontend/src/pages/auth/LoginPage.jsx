@@ -1,27 +1,35 @@
-import React, { useState } from 'react';
-import {useDispatch, useSelector} from 'react-redux';
-import { Link, useNavigate } from 'react-router-dom';
+import React, {useState} from 'react';
+import {useDispatch} from 'react-redux';
+import {Link, useNavigate} from 'react-router-dom';
 
 import AuthService from '../../services/authService';
-import { loginSuccess } from '../../store/authSlice';
+import {loginSuccess, logout} from '../../store/authSlice';
+import {jwtDecode} from "jwt-decode";
 
 const LoginPage = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    const { role } = useSelector((state) => state.auth);
-
 
     const handleLogin = async (e) => {
         e.preventDefault();
-        const response = await AuthService.signIn({ email, password });
-        dispatch(loginSuccess(response.data));
-        console.log(response.data);
-        if (role === 'ROLE_ADMIN') {
-            navigate('/dashboard');
-        } else {
-            navigate('/my-evaluations');
+        try {
+            dispatch(logout());
+
+            const response = await AuthService.signIn({ email, password });
+
+            dispatch(loginSuccess(response.data));
+
+            const decodedToken = jwtDecode(response.data.accessToken);
+            if (decodedToken.role === 'ROLE_ADMIN') {
+                navigate('/dashboard');
+            } else {
+                navigate('/my-evaluations');
+            }
+
+        } catch (error) {
+            console.error("Login failed:", error);
         }
     };
 

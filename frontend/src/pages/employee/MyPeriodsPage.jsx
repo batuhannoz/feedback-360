@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import UserEvaluationService from '../../services/userEvaluationService';
-import { toast } from 'react-toastify';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '../../components/ui/card';
-import { ChevronRight } from 'lucide-react';
+import React, {useEffect, useState} from 'react';
+import {useNavigate} from 'react-router-dom';
+import UserEvaluationService from '../../services/userEvaluationService.js';
+import {toast} from 'react-toastify';
+import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '../../components/ui/card.jsx';
+import {ChevronRight} from 'lucide-react';
 
 const MyPeriodsPage = () => {
     const [periods, setPeriods] = useState([]);

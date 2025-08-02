@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { useSelector } from 'react-redux';
+import React, {useEffect, useState} from 'react';
+import {useSelector} from 'react-redux';
 import PeriodCompetencyService from '../../services/periodCompetencyService';
-import { Button } from '../../components/ui/button';
-import { Input } from '../../components/ui/input';
-import { toast } from 'react-toastify';
-import { Alert, AlertDescription, AlertTitle } from '../../components/ui/alert';
-import { Terminal } from 'lucide-react';
+import {Button} from '../../components/ui/button';
+import {Input} from '../../components/ui/input';
+import {toast} from 'react-toastify';
+import {Alert, AlertDescription, AlertTitle} from '../../components/ui/alert';
+import {Terminal} from 'lucide-react';
 
 const CompetencyWeightsPage = () => {
     const [weights, setWeights] = useState([]);
@@ -35,7 +35,7 @@ const CompetencyWeightsPage = () => {
 
     const handleWeightChange = (competencyId, value) => {
         const newWeight = parseInt(value, 10);
-        if (isNaN(newWeight) && value !== '') return; // Allow clearing the input
+        if (isNaN(newWeight) && value !== '') return;
 
         const newWeights = weights.map(w =>
             w.competencyId === competencyId ? { ...w, weight: isNaN(newWeight) ? 0 : newWeight } : w
@@ -92,7 +92,7 @@ const CompetencyWeightsPage = () => {
                                     <label className="font-medium">{w.competencyTitle}</label>
                                     <Input
                                         type="number"
-                                        value={w.weight.toString()} // Convert number to string for input value
+                                        value={w.weight.toString()}
                                         onChange={(e) => handleWeightChange(w.competencyId, e.target.value)}
                                         min="0"
                                         max="100"

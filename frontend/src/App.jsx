@@ -1,7 +1,7 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
-import { Toaster } from 'sonner';
+import {BrowserRouter as Router, Navigate, Route, Routes} from 'react-router-dom';
+import {useSelector} from 'react-redux';
+import {Toaster} from 'sonner';
 
 import LoginPage from './pages/auth/LoginPage.jsx';
 import CompanySignUpPage from './pages/auth/CompanySignUpPage.jsx';
@@ -17,9 +17,9 @@ import EmployeesPage from './pages/admin/EmployeesPage.jsx';
 import EmployeeDetailPage from './pages/admin/EmployeeDetailPage.jsx';
 import AssignmentAnswersPage from './pages/admin/AssignmentAnswersPage.jsx';
 import StartPeriodPage from './pages/admin/StartPeriodPage.jsx';
-import MyPeriodsPage from './pages/user/MyPeriodsPage.jsx';
-import MyAssignmentsPage from './pages/user/MyAssignmentsPage.jsx';
-import EvaluationPage from './pages/user/EvaluationPage.jsx';
+import MyPeriodsPage from './pages/employee/MyPeriodsPage.jsx';
+import MyAssignmentsPage from './pages/employee/MyAssignmentsPage.jsx';
+import EvaluationPage from './pages/employee/EvaluationPage.jsx';
 import SettingsPage from './pages/admin/SettingsPage.jsx';
 import EvaluationsPage from './pages/admin/EvaluationsPage.jsx';
 import ParticipantsPage from './pages/admin/ParticipantsPage.jsx';

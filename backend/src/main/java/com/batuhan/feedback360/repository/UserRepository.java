@@ -20,4 +20,6 @@ public interface UserRepository extends JpaRepository<User, Integer>, JpaSpecifi
     List<User> findAllByIdInAndCompany_Id(List<Integer> userIds, Integer companyId);
 
     List<User> findAllByIdInAndCompany(Collection<Integer> ids, Company company);
+
+    long countByCompany_Id(Integer companyId);
 }

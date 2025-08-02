@@ -9,6 +9,7 @@ import com.batuhan.feedback360.model.request.UserSignUpRequest;
 import com.batuhan.feedback360.model.response.ApiResponse;
 import com.batuhan.feedback360.model.response.JwtAuthenticationResponse;
 import com.batuhan.feedback360.service.AuthService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -29,7 +30,7 @@ public class AuthController {
     }
 
     @PostMapping("/invitation")
-    public ResponseEntity<ApiResponse<?>> completeInvitation(@RequestBody UserSignUpRequest request) {
+    public ResponseEntity<ApiResponse<?>> completeInvitation(@Valid @RequestBody UserSignUpRequest request) {
         return ResponseEntity.ok(authService.completeEmployeeInvitation(request));
     }
 

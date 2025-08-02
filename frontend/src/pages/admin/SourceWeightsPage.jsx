@@ -1,12 +1,21 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { useSelector } from 'react-redux';
+import React, {useCallback, useEffect, useState} from 'react';
+import {useSelector} from 'react-redux';
 import PeriodCompetencyService from '../../services/periodCompetencyService';
-import { getEvaluatorsByPeriodId } from '../../services/periodEvaluatorService';
-import { Button } from '../../components/ui/button';
-import { Input } from '../../components/ui/input';
-import { toast } from 'react-toastify';
-import { Alert, AlertDescription, AlertTitle } from '../../components/ui/alert';
-import { Terminal } from 'lucide-react';
+import {getEvaluatorsByPeriodId} from '../../services/periodEvaluatorService';
+import {Button} from '../../components/ui/button';
+import {Input} from '../../components/ui/input';
+import {toast} from 'react-toastify';
+import {Alert, AlertDescription, AlertTitle} from '../../components/ui/alert';
+import {Terminal} from 'lucide-react';
+
+const evaluatorTypeTranslations = {
+    MANAGER: 'Yönetici',
+    SUBORDINATE: 'Ast',
+    PEER: 'Eş Değer',
+    SELF: 'Kendisi',
+    OTHER: 'Diğer'
+};
+
 
 const SourceWeightsPage = () => {
     const [competencies, setCompetencies] = useState([]);
@@ -82,7 +91,7 @@ const SourceWeightsPage = () => {
                     weight: weights[competencyId][evaluatorId]
                 }));
 
-                const requestBody = { weights: weightsForCompetency };
+                const requestBody = {weights: weightsForCompetency};
 
                 return PeriodCompetencyService.setCompetencyEvaluatorWeights(
                     selectedPeriod.id,
@@ -95,7 +104,7 @@ const SourceWeightsPage = () => {
 
             toast.success('Tüm ağırlıklar başarıyla güncellendi.');
         } catch (error) {
-            console.error("Ağırlık güncelleme hatası:", error); // Geliştirme için hatayı konsola yazdır
+            console.error("Ağırlık güncelleme hatası:", error);
             toast.error('Ağırlıkları güncellerken bir hata oluştu.');
         } finally {
             setLoading(false);
@@ -117,10 +126,12 @@ const SourceWeightsPage = () => {
             </div>
 
             <Alert className="mb-6">
-                <Terminal className="h-4 w-4" />
+                <Terminal className="h-4 w-4"/>
                 <AlertTitle>Kaynak Ağırlıklarını Belirleyin</AlertTitle>
                 <AlertDescription>
-                    Aşağıdaki tabloda, her bir yetkinlik için farklı değerlendirici kaynaklarının (Yönetici, Akran, vb.) vereceği cevapların ağırlıklarını belirleyebilirsiniz. Her satırın (yetkinlik) toplamı %100 olmalıdır.
+                    Aşağıdaki tabloda, her bir yetkinlik için farklı değerlendirici kaynaklarının (Yönetici, Akran, vb.)
+                    vereceği cevapların ağırlıklarını belirleyebilirsiniz. Her satırın (yetkinlik) toplamı %100
+                    olmalıdır.
                 </AlertDescription>
             </Alert>
 
@@ -129,7 +140,10 @@ const SourceWeightsPage = () => {
                     <thead className="bg-gray-50">
                     <tr>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Yetkinlik</th>
-                        {evaluators.map(e => <th key={e.id} className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">{e.name} (%)</th>)}
+                        {evaluators.map(e =>
+                            <th key={e.id} className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                {e.evaluatorName || evaluatorTypeTranslations[e.evaluatorType]} (%)
+                            </th>)}
                         <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Toplam</th>
                     </tr>
                     </thead>
@@ -140,8 +154,6 @@ const SourceWeightsPage = () => {
                             <tr key={comp.id}>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{comp.title}</td>
                                 {evaluators.map(e => {
-                                    // Check if the evaluator has permission for this competency.
-                                    // The key's existence in the weights object indicates permission.
                                     const isEditable = weights[comp.id] && Object.prototype.hasOwnProperty.call(weights[comp.id], e.id);
 
                                     return (
@@ -156,7 +168,8 @@ const SourceWeightsPage = () => {
                                                     max="100"
                                                 />
                                             ) : (
-                                                <div className="w-24 h-10 flex items-center justify-center mx-auto border rounded-md bg-gray-100 text-gray-500 font-medium">
+                                                <div
+                                                    className="w-24 h-10 flex items-center justify-center mx-auto border rounded-md bg-gray-100 text-gray-500 font-medium">
                                                     -
                                                 </div>
                                             )}
