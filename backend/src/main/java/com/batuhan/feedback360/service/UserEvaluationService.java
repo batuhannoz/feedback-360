@@ -174,15 +174,11 @@ public class UserEvaluationService {
             return Optional.of(ApiResponse.failure(messageHandler.getMessage("user.tasks.permission.denied")));
         }
         if (hasEvaluationBeenSubmitted(evaluatorUserId, evaluatedUserId, periodId)) {
-            // Yeni bir hata mesajı anahtarı eklenmeli (örn: evaluation.already.submitted)
             return Optional.of(ApiResponse.failure(messageHandler.getMessage("evaluation.already.submitted")));
         }
         return Optional.empty();
     }
 
-    /**
-     * Cevap gönderme işlemi için periyot, kullanıcı ve gönderim durumu gibi ön koşulları kontrol eder.
-     */
     private Optional<ApiResponse<List<AnswerResponse>>> validateSubmissionPrerequisites(Integer periodId, Integer evaluatedUserId, Integer evaluatorUserId) {
         EvaluationPeriod period = evaluationPeriodRepository.findByIdAndCompanyId(periodId, principalResolver.getCompanyId()).orElse(null);
         if (period == null || period.getStatus() != PeriodStatus.IN_PROGRESS) {
@@ -197,9 +193,6 @@ public class UserEvaluationService {
         return Optional.empty();
     }
 
-    /**
-     * Değerlendiricinin belirli bir kullanıcı için yanıtlamasına izin verilen soruların listesini döndürür.
-     */
     private List<Question> getPermittedQuestions(Integer periodId, Integer evaluatorUserId, Integer evaluatedUserId) {
         List<EvaluationAssignment> userAssignments = evaluationAssignmentRepository.findAllByEvaluatorUser_IdAndPeriodParticipant_Period_IdAndPeriodParticipant_EvaluatedUser_Id(
             evaluatorUserId, periodId, evaluatedUserId
