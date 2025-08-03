@@ -5,6 +5,7 @@ import com.batuhan.feedback360.model.converter.EvaluationPeriodConverter;
 import com.batuhan.feedback360.model.entitiy.Company;
 import com.batuhan.feedback360.model.entitiy.Competency;
 import com.batuhan.feedback360.model.entitiy.CompetencyEvaluatorPermission;
+import com.batuhan.feedback360.model.entitiy.EvaluationAssignment;
 import com.batuhan.feedback360.model.entitiy.EvaluationPeriod;
 import com.batuhan.feedback360.model.entitiy.Evaluator;
 import com.batuhan.feedback360.model.entitiy.PeriodCompetencyWeight;
@@ -223,9 +224,12 @@ public class EvaluationPeriodService {
 
         competencyEvaluatorPermissionRepository.deleteAllByPeriodId(periodId);
         periodCompetencyWeightRepository.deleteAllByPeriodId(periodId);
+        List<EvaluationAssignment> assignmentsToDelete = evaluationAssignmentRepository.findAllByPeriodId(periodId);
+        if (assignmentsToDelete != null && !assignmentsToDelete.isEmpty()) {
+            evaluationAssignmentRepository.deleteAll(assignmentsToDelete);
+        }
         periodParticipantRepository.deleteAllByPeriodId(periodId);
         evaluatorRepository.deleteAllByPeriodId(periodId);
-
         evaluationPeriodRepository.delete(period);
 
         return ApiResponse.success(messageHandler.getMessage("evaluation-period.delete.success"));

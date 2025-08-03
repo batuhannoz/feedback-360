@@ -6,6 +6,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 public interface EvaluationAssignmentRepository extends JpaRepository<EvaluationAssignment, Integer> {
     void deleteAllByPeriodParticipant(PeriodParticipant periodParticipant);
@@ -23,4 +25,7 @@ public interface EvaluationAssignmentRepository extends JpaRepository<Evaluation
     List<EvaluationAssignment> findAllByPeriodParticipant_EvaluatedUser_IdAndPeriodParticipant_Period_Id(Integer periodParticipantEvaluatedUserId, Integer periodParticipantPeriodId);
 
     List<EvaluationAssignment> findAllByPeriodParticipant_Period_IdIn(Collection<Integer> periodParticipantPeriodIds);
+
+    @Query("SELECT ea FROM EvaluationAssignment ea JOIN ea.periodParticipant pp WHERE pp.period.id = :periodId")
+    List<EvaluationAssignment> findAllByPeriodId(@Param("periodId") Integer periodId);
 }

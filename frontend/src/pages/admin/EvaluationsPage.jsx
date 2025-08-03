@@ -219,6 +219,17 @@ const EvaluationsPage = () => {
                         {loading && <TableRow><TableCell colSpan="5" className="text-center"><LoadingSpinner /></TableCell></TableRow>}
                         {error && <TableRow><TableCell colSpan="5"
                                                        className="text-center text-red-500">{error}</TableCell></TableRow>}
+                        {!loading && !error && evaluations.length === 0 && (
+                            <TableRow>
+                                <TableCell colSpan="5" className="text-center py-12">
+                                    <h2 className="text-xl font-semibold mb-2">Hiç Değerlendirme Bulunamadı</h2>
+                                    <p className="text-gray-500 mb-4">Hadi ilk değerlendirmenizi oluşturun.</p>
+                                    <Button onClick={() => setIsModalOpen(true)}>
+                                        <Plus className="mr-2 h-4 w-4"/> Değerlendirme Oluştur
+                                    </Button>
+                                </TableCell>
+                            </TableRow>
+                        )}
                         {!loading && !error && evaluations.map((evaluation) => (
                             <TableRow key={evaluation.id} onClick={() => navigate(`/dashboard/evaluations/${evaluation.id}`)}>
                                 <TableCell onClick={(e) => e.stopPropagation()}>
