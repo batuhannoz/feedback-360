@@ -33,9 +33,9 @@ const Header = () => {
         <header className="bg-white shadow-md p-4 flex justify-between items-center border-b">
             <div className="flex items-center">
                 <div className="relative">
-                    <button onClick={() => setDropdownOpen(!dropdownOpen)} className="h-10 flex items-center p-2 border rounded-md">
-                        <span>{selectedPeriod ? selectedPeriod.periodName : 'Dönem Seçin'}</span>
-                        <FiChevronDown className="ml-2" />
+                    <button onClick={() => setDropdownOpen(!dropdownOpen)} className="min-w-48 h-10 flex items-center p-2 border rounded-md">
+                        <span className="grow text-left">{selectedPeriod ? selectedPeriod.periodName : 'Dönem Seçin'}</span>
+                        <FiChevronDown className="grow-0" />
                     </button>
                     {dropdownOpen && (
                         <div className="absolute mt-2 w-64 bg-white rounded-md shadow-lg z-10">
