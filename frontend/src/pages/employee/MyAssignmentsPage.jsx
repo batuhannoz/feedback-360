@@ -1,4 +1,5 @@
 import React, {useEffect, useState} from 'react';
+import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import {useNavigate, useParams} from 'react-router-dom';
 import UserEvaluationService from '../../services/userEvaluationService.js';
 import {toast} from 'react-toastify';
@@ -29,7 +30,7 @@ const MyAssignmentsPage = () => {
     }, [periodId]);
 
     if (loading) {
-        return <div className="p-8">Yükleniyor...</div>;
+        return <div className="flex justify-center items-center h-screen"><LoadingSpinner /></div>;
     }
 
     return (

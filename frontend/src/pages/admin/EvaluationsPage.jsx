@@ -1,4 +1,5 @@
 import React, {useState, useEffect} from 'react';
+import LoadingSpinner from '../../components/ui/LoadingSpinner';
 import {useSelector, useDispatch} from 'react-redux';
 import {useNavigate} from 'react-router-dom';
 import {Button} from '../../components/ui/button';
@@ -215,8 +216,7 @@ const EvaluationsPage = () => {
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {loading && <TableRow><TableCell colSpan="5"
-                                                         className="text-center">Yükleniyor...</TableCell></TableRow>}
+                        {loading && <TableRow><TableCell colSpan="5" className="text-center"><LoadingSpinner /></TableCell></TableRow>}
                         {error && <TableRow><TableCell colSpan="5"
                                                        className="text-center text-red-500">{error}</TableCell></TableRow>}
                         {!loading && !error && evaluations.map((evaluation) => (

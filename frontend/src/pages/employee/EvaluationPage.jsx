@@ -7,6 +7,7 @@ import {Button} from '../../components/ui/button.jsx';
 import {Textarea} from '../../components/ui/textarea.jsx';
 import {Label} from '../../components/ui/label.jsx';
 import {ArrowLeft} from 'lucide-react';
+import LoadingSpinner from "../../components/ui/LoadingSpinner.jsx";
 
 const EvaluationPage = () => {
     const { periodId, evaluatedUserId } = useParams();
@@ -76,7 +77,7 @@ const EvaluationPage = () => {
     };
 
     if (loading) {
-        return <div className="flex items-center justify-center h-screen">Sorular Yükleniyor...</div>;
+        return <div className="flex justify-center items-center h-screen"><LoadingSpinner /></div>;
     }
 
     return (

@@ -1,5 +1,6 @@
-package com.batuhan.feedback360.config;
+package com.batuhan.feedback360.config.filter;
 
+import com.batuhan.feedback360.config.CustomPrincipal;
 import com.batuhan.feedback360.service.JwtService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
