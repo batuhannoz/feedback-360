@@ -23,6 +23,7 @@ import com.batuhan.feedback360.repository.specification.UserSpecification;
 import com.batuhan.feedback360.util.MessageHandler;
 import jakarta.transaction.Transactional;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -38,7 +39,8 @@ public class UserService {
     private final UserRepository userRepository;
     private final MessageHandler messageHandler;
     private final AuthenticationPrincipalResolver principalResolver;
-    private final EmailService emailService;
+    // TODO
+//    private final EmailService emailService;
     private final CompanyRepository companyRepository;
     private final UserConverter userConverter;
     private final EvaluationAssignmentRepository evaluationAssignmentRepository;
@@ -65,9 +67,49 @@ public class UserService {
             .isActive(true)
             .invitationValidityDate(LocalDateTime.now().plusDays(7))
             .build();
-        emailService.sendInvitationEmail(user.getEmail(), user.getInvitationToken());
+        // TODO
+        // emailService.sendInvitationEmail(user.getEmail(), user.getInvitationToken());
         userRepository.save(user);
         return ApiResponse.success(userConverter.toUserResponse(user), null);
+    }
+
+    @Transactional
+    public ApiResponse<List<UserResponse>> createUsers(List<UserRequest> requests) {
+        Company company = companyRepository.getReferenceById(principalResolver.getCompanyId());
+        List<User> newUsers = new ArrayList<>();
+        List<String> errors = new ArrayList<>();
+
+        for (UserRequest request : requests) {
+            if (userRepository.findByEmail(request.getEmail()).isPresent()) {
+                errors.add(messageHandler.getMessage("error.user.email-exists", request.getEmail()));
+            } else {
+                User user = User.builder()
+                    .firstName(request.getFirstName())
+                    .lastName(request.getLastName())
+                    .email(request.getEmail())
+                    .company(company)
+                    .isAdmin(request.getIsAdmin())
+                    .invitationToken(UUID.randomUUID().toString())
+                    .role(request.getRole())
+                    .isActive(request.getIsActive())
+                    .invitationValidityDate(LocalDateTime.now().plusDays(7))
+                    .build();
+                // TODO
+                // emailService.sendInvitationEmail(user.getEmail(), user.getInvitationToken());
+                newUsers.add(user);
+            }
+        }
+
+        if (!errors.isEmpty()) {
+            return ApiResponse.failure(String.join(", ", errors));
+        }
+
+        List<User> savedUsers = userRepository.saveAll(newUsers);
+        List<UserResponse> userResponses = savedUsers.stream()
+            .map(userConverter::toUserResponse)
+            .collect(Collectors.toList());
+
+        return ApiResponse.success(userResponses, null);
     }
 
     @Transactional
@@ -108,7 +150,8 @@ public class UserService {
             String newInvitationToken = UUID.randomUUID().toString();
             employee.setInvitationToken(newInvitationToken);
             employee.setInvitationValidityDate(LocalDateTime.now().plusDays(7));
-            emailService.sendInvitationEmail(employee.getEmail(), employee.getInvitationToken());
+            // TODO
+//            emailService.sendInvitationEmail(employee.getEmail(), employee.getInvitationToken());
         }
 
         User updatedUser = userRepository.save(employee);

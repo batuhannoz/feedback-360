@@ -8,6 +8,10 @@ export const createUser = (userRequest) => {
     return apiClient.post('/user', userRequest);
 };
 
+export const createUsers = (userRequest) => {
+    return apiClient.post('/user/bulk', userRequest);
+};
+
 export const updateUser = (userId, userRequest) => {
     return apiClient.put(`/user/${userId}`, userRequest);
 };

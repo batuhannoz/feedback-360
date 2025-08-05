@@ -32,6 +32,11 @@ public class UserController {
         return ResponseEntity.ok(userService.createUser(request));
     }
 
+    @PostMapping("/bulk")
+    public ResponseEntity<ApiResponse<List<UserResponse>>> createUsers(@RequestBody List<UserRequest> requests) {
+        return ResponseEntity.ok(userService.createUsers(requests));
+    }
+
     @PutMapping("/{userId}")
     public ResponseEntity<ApiResponse<UserResponse>> updateUser(@PathVariable Integer userId, @RequestBody UserRequest request) {
         return ResponseEntity.ok(userService.updateEmployee(userId, request));

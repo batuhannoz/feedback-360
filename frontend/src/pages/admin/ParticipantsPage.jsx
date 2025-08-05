@@ -14,6 +14,7 @@ import {Input} from '../../components/ui/input';
 import {Button} from '../../components/ui/button';
 import {toast} from 'sonner';
 import {StrictModeDroppable} from "../../components/StrictModeDroppable.tsx";
+import {Badge} from "../../components/ui/badge.jsx";
 
 const evaluatorTypeTranslations = {
     MANAGER: 'Yönetici',
@@ -52,7 +53,6 @@ const ParticipantsPage = () => {
             const userIdsInColumn = existingAssignments
                 .filter(a => a.evaluator.id === type.id)
                 .map(a => a.evaluatorUser.id);
-            // Burada `type.name` zaten işlenmiş olduğu için doğru başlık gelecektir.
             columns[type.id] = {id: type.id, title: type.name, userIds: userIdsInColumn};
             userIdsInColumn.forEach(id => assignedUserIds.add(id));
         });
@@ -78,7 +78,7 @@ const ParticipantsPage = () => {
         setLoading(true);
         try {
             const [usersRes, participantsRes, evaluatorTypesRes] = await Promise.all([
-                getUsers({active: true}),
+                getUsers(),
                 getParticipantsByPeriod(selectedPeriod.id),
                 getEvaluatorsByPeriodId(selectedPeriod.id)
             ]);
@@ -86,19 +86,16 @@ const ParticipantsPage = () => {
             const companyUsers = usersRes.data || [];
             const fetchedParticipants = participantsRes.data || [];
 
-            // DEĞİŞİKLİK 2: Değerlendirici tiplerini işleyerek boş isimleri doldurun.
             const processedEvaluatorTypes = (evaluatorTypesRes.data || []).map(et => ({
                 ...et,
-                // Eğer `name` alanı boş veya null ise, çeviri nesnesinden varsayılan adı alınır.
                 name: et.name || evaluatorTypeTranslations[et.evaluatorType] || 'Bilinmeyen Tip'
             }));
 
-            // 'SELF' tipi, özel checkbox ile yönetildiği için D&D sütunlarından çıkarılır.
             const filteredEvaluatorTypes = processedEvaluatorTypes.filter(et => et.evaluatorType !== 'SELF');
 
             setAllCompanyUsers(companyUsers);
             setParticipants(fetchedParticipants);
-            setEvaluatorTypes(filteredEvaluatorTypes); // İşlenmiş veriyi state'e kaydedin.
+            setEvaluatorTypes(filteredEvaluatorTypes);
 
             const participantIds = new Set(fetchedParticipants.map(p => p.id));
             setAvailableUsers(companyUsers.filter(user => !participantIds.has(user.id)));
@@ -203,7 +200,6 @@ const ParticipantsPage = () => {
         if (!selectedParticipant) return;
 
         try {
-            // Self tipi için API'den gelen orijinal veriyi tekrar çekmek yerine işlenmiş veriden bulalım
             const allEvaluatorTypes = (await getEvaluatorsByPeriodId(selectedPeriod.id)).data;
             const selfEvaluatorType = allEvaluatorTypes.find(e => e.evaluatorType === 'SELF');
 
@@ -282,11 +278,22 @@ const ParticipantsPage = () => {
                 <div className="overflow-auto h-96">
                     {filteredAvailableUsers.map(user => (
                         <div key={user.id}
-                             className="flex items-center justify-between p-2 hover:bg-gray-100 rounded-md">
+                             className="flex items-center justify-between p-2 hover:bg-gray-100 rounded-md group">
                             <span>{`${user.firstName} ${user.lastName} ${user.role ? ` - ${user.role}` : ''}`}</span>
-                            <Button size="sm" onClick={() => handleAddParticipant(user)}>Ekle</Button>
+                            <div className="flex items-center gap-2">
+                                <Badge className="mr-2" variant={user.isActive ? "outline" : "destructive"}>
+                                    {user.isActive ? 'Aktif' : 'Pasif'}
+                                </Badge>
+                                <Button
+                                    size="sm"
+                                    onClick={() => handleAddParticipant(user)}
+                                    className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                    Ekle
+                                </Button>
+                            </div>
                         </div>
                     ))}
+
                 </div>
             </div>
             <div className="border rounded-lg p-4">
@@ -294,10 +301,20 @@ const ParticipantsPage = () => {
                 <div className="overflow-auto h-96">
                     {participants.map(user => (
                         <div key={user.id}
-                             className="flex items-center justify-between p-2 hover:bg-gray-100 rounded-md">
+                             className="flex items-center justify-between p-2 hover:bg-gray-100 rounded-md group">
                             <span>{`${user.firstName} ${user.lastName} ${user.role ? ` - ${user.role}` : ''}`}</span>
-                            <Button variant="destructive" size="sm"
-                                    onClick={() => handleRemoveParticipant(user)}>Çıkar</Button>
+                            <div className="flex items-center gap-2">
+                                <Badge className="mr-2" variant={user.isActive ? "outline" : "destructive"}>
+                                    {user.isActive ? 'Aktif' : 'Pasif'}
+                                </Badge>
+                                <Button
+                                    variant="destructive"
+                                    size="sm"
+                                    onClick={() => handleRemoveParticipant(user)}
+                                    className="opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                    Çıkar
+                                </Button>
+                            </div>
                         </div>
                     ))}
                 </div>

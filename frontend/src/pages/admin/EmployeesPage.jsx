@@ -9,8 +9,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 import { Download, Edit, Plus, Upload } from 'lucide-react';
 import AddEmployeeModal from '../../components/admin/AddEmployeeModal';
 import EditEmployeeModal from '../../components/admin/EditEmployeeModal';
-// DEĞİŞİKLİK: Yeni içe aktarma modalını import ediyoruz.
 import ImportEmployeesModal from '../../components/admin/ImportEmployeesModal';
+import {Badge} from "../../components/ui/badge.jsx";
 
 const EmployeesPage = () => {
     const [employees, setEmployees] = useState([]);
@@ -99,10 +99,10 @@ const EmployeesPage = () => {
                 <h1 className="text-2xl font-bold">Çalışanlar</h1>
                 <div className="flex items-center gap-2">
                     <Button variant="outline" onClick={() => setIsImportModalOpen(true)}>
-                        <Upload className="mr-2 h-4 w-4" /> İçe Aktar
+                        <Download className="mr-2 h-4 w-4" /> İçe Aktar
                     </Button>
                     <Button variant="outline" onClick={handleExportClick}>
-                        <Download className="mr-2 h-4 w-4" /> Dışa Aktar
+                        <Upload className="mr-2 h-4 w-4" /> Dışa Aktar
                     </Button>
                     <Button onClick={() => setIsAddModalOpen(true)}>
                         <Plus className="mr-2 h-4 w-4" /> Çalışan Ekle
@@ -174,11 +174,15 @@ const EmployeesPage = () => {
                                     </TableCell>
                                     <TableCell onClick={() => navigate(`/dashboard/employees/${employee.id}`)}>{`${employee.firstName} ${employee.lastName}`}</TableCell>
                                     <TableCell onClick={() => navigate(`/dashboard/employees/${employee.id}`)}>{employee.role}</TableCell>
-                                    <TableCell onClick={() => navigate(`/dashboard/employees/${employee.id}`)}>{employee.isActive ? 'Aktif' : 'Pasif'}</TableCell>
+                                    <TableCell onClick={() => navigate(`/dashboard/employees/${employee.id}`)}>
+                                        <Badge variant={employee.isActive ? "default" : "destructive"}>
+                                            {employee.isActive ? 'Aktif' : 'Pasif'}
+                                        </Badge>
+                                    </TableCell>
                                     <TableCell className="text-right">
                                         <Button
-                                            variant="ghost" // 'outline' yerine 'ghost' daha az dikkat dağıtır
-                                            size="icon" // Sadece ikon butonu için
+                                            variant="ghost"
+                                            size="icon"
                                             onClick={(e) => {
                                                 e.stopPropagation();
                                                 handleEditClick(employee);
@@ -197,6 +201,10 @@ const EmployeesPage = () => {
             <ImportEmployeesModal
                 isOpen={isImportModalOpen}
                 onClose={() => setIsImportModalOpen(false)}
+                onSuccess={() => {
+                    setIsAddModalOpen(false);
+                    fetchEmployees();
+                }}
             />
 
             <AddEmployeeModal

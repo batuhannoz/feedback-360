@@ -35,7 +35,7 @@ const Header = () => {
                 <div className="relative">
                     <button onClick={() => setDropdownOpen(!dropdownOpen)} className="min-w-48 h-10 flex items-center p-2 border rounded-md">
                         <span className="grow text-left">{selectedPeriod ? selectedPeriod.periodName : 'Dönem Seçin'}</span>
-                        <FiChevronDown className="grow-0" />
+                        <FiChevronDown className="ml-2 grow-0" />
                     </button>
                     {dropdownOpen && (
                         <div className="absolute mt-2 w-64 bg-white rounded-md shadow-lg z-10">

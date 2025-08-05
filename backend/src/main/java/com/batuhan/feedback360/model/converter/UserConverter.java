@@ -19,6 +19,7 @@ public class UserConverter {
             .firstName(user.getFirstName())
             .lastName(user.getLastName())
             .email(user.getEmail())
+            .isActive(user.getIsActive())
             .build();
     }
 

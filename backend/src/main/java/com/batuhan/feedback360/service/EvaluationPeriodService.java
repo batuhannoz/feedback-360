@@ -197,7 +197,7 @@ public class EvaluationPeriodService {
             List<PeriodParticipant> participants = periodParticipantRepository.findAllByPeriod_Id(periodId);
             for (PeriodParticipant participant : participants) {
                 if (participant.getEvaluatedUser() != null && participant.getEvaluatedUser().getEmail() != null) {
-                    emailService.sendPeriodStartedEmail(participant.getEvaluatedUser().getEmail(), period.getEvaluationName());
+//                    emailService.sendPeriodStartedEmail(participant.getEvaluatedUser().getEmail(), period.getEvaluationName());
                 }
             }
         }
