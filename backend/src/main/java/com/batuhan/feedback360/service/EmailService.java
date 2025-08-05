@@ -33,28 +33,28 @@ public class EmailService {
 
     @Async
     public void sendInvitationEmail(String to, String token) {
-        String invitationLink = invitationBaseUrl + "?token=" + token + "&email=" + to;
-        String subject = messageHandler.getMessage("email.invitation.subject");
-        String body = messageHandler.getMessage("email.invitation.body", invitationLink);
-
-        sendAndLogEmail(to, subject, body, EmailTemplate.INVITATION, null);
+//        String invitationLink = invitationBaseUrl + "?token=" + token + "&email=" + to;
+//        String subject = messageHandler.getMessage("email.invitation.subject");
+//        String body = messageHandler.getMessage("email.invitation.body", invitationLink);
+//
+//        sendAndLogEmail(to, subject, body, EmailTemplate.INVITATION, null);
     }
 
     @Async
     public void sendPasswordResetEmail(User user, String token) {
-        String passwordResetLink = invitationBaseUrl + "/reset-password?token=" + token;
-        String subject = messageHandler.getMessage("email.password-reset.subject");
-        String body = messageHandler.getMessage("email.passwordReset.body", passwordResetLink);
-
-        sendAndLogEmail(user.getEmail(), subject, body, EmailTemplate.PASSWORD_RESET, user);
+//        String passwordResetLink = invitationBaseUrl + "/reset-password?token=" + token;
+//        String subject = messageHandler.getMessage("email.password-reset.subject");
+//        String body = messageHandler.getMessage("email.passwordReset.body", passwordResetLink);
+//
+//        sendAndLogEmail(user.getEmail(), subject, body, EmailTemplate.PASSWORD_RESET, user);
     }
 
     @Async
     public void sendPeriodStartedEmail(String to, String periodName) {
-        String subject = messageHandler.getMessage("email.period.start.subject", periodName);
-        String body = messageHandler.getMessage("email.period.start.body", periodName);
-
-        sendAndLogEmail(to, subject, body, EmailTemplate.PERIOD_STARTED, null);
+//        String subject = messageHandler.getMessage("email.period.start.subject", periodName);
+//        String body = messageHandler.getMessage("email.period.start.body", periodName);
+//
+//        sendAndLogEmail(to, subject, body, EmailTemplate.PERIOD_STARTED, null);
     }
 
     private void sendAndLogEmail(String to, String subject, String body, EmailTemplate template, User user) {

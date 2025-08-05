@@ -10,6 +10,7 @@ import com.batuhan.feedback360.model.entitiy.EvaluationPeriod;
 import com.batuhan.feedback360.model.entitiy.Evaluator;
 import com.batuhan.feedback360.model.entitiy.PeriodCompetencyWeight;
 import com.batuhan.feedback360.model.entitiy.PeriodParticipant;
+import com.batuhan.feedback360.model.entitiy.User;
 import com.batuhan.feedback360.model.enums.EvaluatorType;
 import com.batuhan.feedback360.model.enums.PeriodStatus;
 import com.batuhan.feedback360.model.request.EvaluationPeriodRequest;
@@ -101,7 +102,8 @@ public class EvaluationPeriodService {
     }
 
     public ApiResponse<EvaluationPeriodDetailResponse> getEvaluationPeriodDetails(Long periodId) {
-        EvaluationPeriod period = evaluationPeriodRepository.findById(periodId.intValue()).orElse(null);
+        EvaluationPeriod period = evaluationPeriodRepository.findById(periodId.intValue())
+            .orElse(null);
         if (period == null) {
             return ApiResponse.failure(messageHandler.getMessage("evaluation-period.not-found"));
         }
@@ -109,14 +111,21 @@ public class EvaluationPeriodService {
         List<PeriodParticipant> participants = periodParticipantRepository.findAllByPeriod(period);
 
         List<ParticipantDetailResponse> participantDetails = participants.stream().map(participant -> {
-            List<com.batuhan.feedback360.model.entitiy.EvaluationAssignment> assignments = evaluationAssignmentRepository.findAllByPeriodParticipant(participant);
-            long completedCount = assignments.stream().filter(a -> a.getAnswers() != null && !a.getAnswers().isEmpty()).count();
+            User evaluator = participant.getEvaluatedUser();
+
+            List<EvaluationAssignment> assignmentsToDo =
+                evaluationAssignmentRepository.findAllByEvaluatorUser_IdAndPeriodParticipant_Period_Id(evaluator.getId(), period.getId());
+
+            long completedCount = assignmentsToDo.stream()
+                .filter(assignment -> assignment.getAnswers() != null && !assignment.getAnswers().isEmpty())
+                .count();
+
             return ParticipantDetailResponse.builder()
-                .userId(participant.getEvaluatedUser().getId().longValue())
-                .firstName(participant.getEvaluatedUser().getFirstName())
-                .lastName(participant.getEvaluatedUser().getLastName())
-                .email(participant.getEvaluatedUser().getEmail())
-                .totalAssignments(assignments.size())
+                .userId(evaluator.getId().longValue())
+                .firstName(evaluator.getFirstName())
+                .lastName(evaluator.getLastName())
+                .email(evaluator.getEmail())
+                .totalAssignments(assignmentsToDo.size())
                 .completedAssignments((int) completedCount)
                 .build();
         }).collect(Collectors.toList());
@@ -197,7 +206,7 @@ public class EvaluationPeriodService {
             List<PeriodParticipant> participants = periodParticipantRepository.findAllByPeriod_Id(periodId);
             for (PeriodParticipant participant : participants) {
                 if (participant.getEvaluatedUser() != null && participant.getEvaluatedUser().getEmail() != null) {
-//                    emailService.sendPeriodStartedEmail(participant.getEvaluatedUser().getEmail(), period.getEvaluationName());
+                    emailService.sendPeriodStartedEmail(participant.getEvaluatedUser().getEmail(), period.getEvaluationName());
                 }
             }
         }

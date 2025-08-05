@@ -32,6 +32,7 @@ import EvaluationPeriodDetailPage from './pages/admin/EvaluationPeriodDetailPage
 import './App.css';
 import SourceWeightsPage from "./pages/admin/SourceWeightsPage.jsx";
 import EmployeeReportPage from "./pages/admin/EmployeeReportPage.jsx";
+import CompetencySettings from "./pages/admin/CompetencySettings.jsx";
 
 function App() {
     const { user, role } = useSelector((state) => state.auth);
@@ -54,14 +55,12 @@ function App() {
                 <Route path="/unauthorized" element={<UnauthorizedPage />} />
 
                 <Route element={<ProtectedRoute allowedRoles={['ROLE_ADMIN', 'ROLE_COMPANY_OWNER', 'ROLE_EMPLOYEE']} />}>
-                    {/* User-facing routes */}
                     <Route element={<EmployeeLayout />}>
                         <Route path="/my-evaluations" element={<MyPeriodsPage />} />
                         <Route path="/my-evaluations/:periodId/assignments" element={<MyAssignmentsPage />} />
                         <Route path="/my-evaluations/:periodId/assignments/:evaluatedUserId" element={<EvaluationPage />} />
                     </Route>
 
-                    {/* Admin-only routes */}
                     <Route element={<ProtectedRoute allowedRoles={['ROLE_ADMIN', 'ROLE_COMPANY_OWNER']} />}>
                         <Route path="/dashboard/*" element={<AdminLayout />}>
                             <Route index element={<DashboardPage />} />
@@ -77,7 +76,7 @@ function App() {
                             <Route path="participants" element={<ParticipantsPage />} />
                             <Route path="competencies" element={<CompetenciesPage />} />
                             <Route path="templates" element={<TemplatesPage />} />
-                            <Route path="competency-weights" element={<WeightsPage />} />
+                            <Route path="competency/settings" element={<CompetencySettings />} />
                             <Route path="source-weights" element={<SourceWeightsPage />} />
                         </Route>
                     </Route>

@@ -16,5 +16,5 @@ public class AnswerSubmissionRequest {
     @Max(value = 5, message = "Score must be at most 5")
     private int score;
 
-    private String answerText;
+    private String comment;
 }

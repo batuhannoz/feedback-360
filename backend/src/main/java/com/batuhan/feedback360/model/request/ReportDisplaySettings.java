@@ -7,15 +7,15 @@ import lombok.Data;
 @Builder
 public class ReportDisplaySettings {
 
-    private String competencyDefinitionTitle; // "Yetkinlik Nedir?"
+    private String competencyDefinitionTitle;
     private String competencyDefinitionText;
-    private String competencySourceWeightsTitle; // "Yetkinlik Bazlı Kaynak Ağırlıkları"
+    private String competencySourceWeightsTitle;
     private String competencySourceWeightsText;
-    private String sourcesTitle; // "Kaynaklar"
+    private String sourcesTitle;
     private String sourcesText;
 
-    private boolean showCompetencyFormWeights; // Yetkinlik Bazlı Form Ağırlıkları
-    private boolean showCompetencySourceWeights; // Yetkinlik Bazlı Kaynak Ağırlıkları
+    private boolean showCompetencyFormWeights;
+    private boolean showCompetencySourceWeights;
     private boolean showSources; // Kaynaklar
     private boolean showOverallResults; // Genel Değerlendirme Sonuçları
     private boolean showSourceBasedCompetencyScores; // Kaynak Bazlı Yetkinlik Puanları

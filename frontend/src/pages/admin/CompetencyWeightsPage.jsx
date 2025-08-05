@@ -74,14 +74,14 @@ const CompetencyWeightsPage = () => {
     if (error) return <div className="p-8 text-red-500">{error}</div>;
 
     return (
-        <div className="p-8 bg-gray-50 min-h-screen">
-            <h1 className="text-3xl font-bold mb-6">Yetkinlik Ağırlıkları</h1>
+        <div>
+            <h1 className="text-3xl font-bold my-6">Yetkinlik Ağırlıkları</h1>
             <div className="bg-white p-6 rounded-lg shadow-md">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                     <div className="md:col-span-1">
                         <h2 className="text-lg font-semibold">Ağırlık Yönetimi</h2>
                         <p className="text-gray-600 mt-2">
-                            Değerlendirme içerisindeki yetkinliklerin ağırlıklarını belirleyebilirsiniz. 
+                            Değerlendirme içerisindeki yetkinliklerin ağırlıklarını belirleyebilirsiniz.
                             Tüm yetkinliklerin ağırlıkları toplamı 100 olmak zorundadır.
                         </p>
                     </div>
@@ -103,7 +103,7 @@ const CompetencyWeightsPage = () => {
                         ) : (
                             <p className="text-gray-500">Bu dönem için henüz yetkinlik eklenmemiş.</p>
                         )}
-                        
+
                         <hr className="my-4" />
 
                         <div className="flex items-center justify-between font-bold text-lg">

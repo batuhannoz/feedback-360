@@ -39,8 +39,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final MessageHandler messageHandler;
     private final AuthenticationPrincipalResolver principalResolver;
-    // TODO
-//    private final EmailService emailService;
+    private final EmailService emailService;
     private final CompanyRepository companyRepository;
     private final UserConverter userConverter;
     private final EvaluationAssignmentRepository evaluationAssignmentRepository;
@@ -67,8 +66,8 @@ public class UserService {
             .isActive(true)
             .invitationValidityDate(LocalDateTime.now().plusDays(7))
             .build();
-        // TODO
-        // emailService.sendInvitationEmail(user.getEmail(), user.getInvitationToken());
+
+        emailService.sendInvitationEmail(user.getEmail(), user.getInvitationToken());
         userRepository.save(user);
         return ApiResponse.success(userConverter.toUserResponse(user), null);
     }
@@ -94,8 +93,8 @@ public class UserService {
                     .isActive(request.getIsActive())
                     .invitationValidityDate(LocalDateTime.now().plusDays(7))
                     .build();
-                // TODO
-                // emailService.sendInvitationEmail(user.getEmail(), user.getInvitationToken());
+
+                emailService.sendInvitationEmail(user.getEmail(), user.getInvitationToken());
                 newUsers.add(user);
             }
         }
@@ -150,8 +149,7 @@ public class UserService {
             String newInvitationToken = UUID.randomUUID().toString();
             employee.setInvitationToken(newInvitationToken);
             employee.setInvitationValidityDate(LocalDateTime.now().plusDays(7));
-            // TODO
-//            emailService.sendInvitationEmail(employee.getEmail(), employee.getInvitationToken());
+            emailService.sendInvitationEmail(employee.getEmail(), employee.getInvitationToken());
         }
 
         User updatedUser = userRepository.save(employee);

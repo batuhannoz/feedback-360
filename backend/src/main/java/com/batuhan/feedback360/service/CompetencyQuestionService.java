@@ -3,12 +3,14 @@ package com.batuhan.feedback360.service;
 import com.batuhan.feedback360.config.AuthenticationPrincipalResolver;
 import com.batuhan.feedback360.model.converter.QuestionConverter;
 import com.batuhan.feedback360.model.entitiy.Competency;
+import com.batuhan.feedback360.model.entitiy.EvaluationScale;
 import com.batuhan.feedback360.model.entitiy.PeriodCompetencyWeight;
 import com.batuhan.feedback360.model.entitiy.Question;
 import com.batuhan.feedback360.model.request.QuestionRequest;
 import com.batuhan.feedback360.model.response.ApiResponse;
 import com.batuhan.feedback360.model.response.QuestionResponse;
 import com.batuhan.feedback360.repository.EvaluationPeriodRepository;
+import com.batuhan.feedback360.repository.EvaluationScaleRepository;
 import com.batuhan.feedback360.repository.PeriodCompetencyWeightRepository;
 import com.batuhan.feedback360.repository.QuestionRepository;
 import com.batuhan.feedback360.util.MessageHandler;
@@ -29,6 +31,7 @@ public class CompetencyQuestionService {
     private final AuthenticationPrincipalResolver principalResolver;
     private final PeriodCompetencyWeightRepository periodCompetencyWeightRepository;
     private final EvaluationPeriodRepository evaluationPeriodRepository;
+    private final EvaluationScaleRepository evaluationScaleRepository;
 
     public ApiResponse<List<QuestionResponse>> getQuestionsForCompetency(Integer periodId, Integer competencyId) {
         Optional<Competency> competencyOpt = validatePeriodAndCompetency(periodId, competencyId);
@@ -50,10 +53,19 @@ public class CompetencyQuestionService {
         }
         Competency competency = competencyOpt.get();
 
+        Optional<EvaluationScale> scaleOpt = evaluationScaleRepository.findByIdAndCompanyId(
+            request.getEvaluationScaleId(), principalResolver.getCompanyId()
+        );
+
+        if (scaleOpt.isEmpty()) {
+            return ApiResponse.failure(messageHandler.getMessage("evaluation-scale.not-found"));
+        }
+
         Question newQuestion = Question.builder()
             .questionText(request.getQuestionText())
             .competency(competency)
             .company(competency.getCompany())
+            .evaluationScale(scaleOpt.get())
             .hiddenScores(request.getHiddenScores())
             .scoresRequiringComment(request.getScoresRequiringComment())
             .build();
@@ -70,9 +82,20 @@ public class CompetencyQuestionService {
         if (validatePeriodAndCompetency(periodId, competencyId).isEmpty()) {
             return ApiResponse.failure(messageHandler.getMessage("competency.not-found-in-period", competencyId));
         }
+
+        Optional<EvaluationScale> scaleOpt = evaluationScaleRepository.findByIdAndCompanyId(
+            request.getEvaluationScaleId(), principalResolver.getCompanyId()
+        );
+
+        if (scaleOpt.isEmpty()) {
+            return ApiResponse.failure(messageHandler.getMessage("evaluation-scale.not-found"));
+        }
+
         return questionRepository.findByIdAndCompetency_Id(questionId, competencyId)
             .map(questionToUpdate -> {
                 questionToUpdate.setQuestionText(request.getQuestionText());
+                questionToUpdate.setEvaluationScale(scaleOpt.get());
+
                 questionToUpdate.getHiddenScores().clear();
                 if (request.getHiddenScores() != null) {
                     questionToUpdate.getHiddenScores().addAll(request.getHiddenScores());
@@ -81,6 +104,7 @@ public class CompetencyQuestionService {
                 if (request.getScoresRequiringComment() != null) {
                     questionToUpdate.getScoresRequiringComment().addAll(request.getScoresRequiringComment());
                 }
+
                 Question updatedQuestion = questionRepository.save(questionToUpdate);
                 return ApiResponse.success(
                     questionConverter.toQuestionResponse(updatedQuestion),

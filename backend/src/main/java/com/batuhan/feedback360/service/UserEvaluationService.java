@@ -121,7 +121,6 @@ public class UserEvaluationService {
         return ApiResponse.success(questionResponses, messageHandler.getMessage("user.tasks.get.success"));
     }
 
-
     @Transactional
     public ApiResponse<List<AnswerResponse>> submitAnswersForEvaluatedUser(
         Integer periodId,
@@ -233,7 +232,7 @@ public class UserEvaluationService {
             }
 
             boolean isCommentRequired = question.getScoresRequiringComment().contains(req.getScore());
-            boolean isCommentMissing = (req.getAnswerText() == null || req.getAnswerText().isBlank());
+            boolean isCommentMissing = (req.getComment() == null || req.getComment().isBlank());
 
             if (isCommentRequired && isCommentMissing) {
                 return Optional.of(ApiResponse.failure(messageHandler.getMessage("evaluation.comment.required", req.getScore(), question.getId())));
@@ -267,7 +266,7 @@ public class UserEvaluationService {
                         .assignment(assignment)
                         .question(question)
                         .score(req.getScore())
-                        .comment(req.getAnswerText())
+                        .comment(req.getComment())
                         .build());
                 }
             }

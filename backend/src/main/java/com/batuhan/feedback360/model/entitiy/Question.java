@@ -44,6 +44,10 @@ public class Question {
     @JoinColumn(name = "competency_id", nullable = false)
     private Competency competency;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "evaluation_scale_id", nullable = false)
+    private EvaluationScale evaluationScale;
+
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "question_hidden_scores", joinColumns = @JoinColumn(name = "question_id"))
     @Column(name = "score")

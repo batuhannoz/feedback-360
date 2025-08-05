@@ -18,4 +18,6 @@ public interface QuestionRepository extends JpaRepository<Question, Integer> {
     void deleteByCompetency_Id(Integer competencyId);
 
     List<Question> findByCompetency_IdIn(Collection<Integer> competencyIds);
+
+    boolean existsByEvaluationScaleId(Integer evaluationScaleId);
 }

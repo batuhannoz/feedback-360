@@ -62,7 +62,7 @@ const EvaluationPage = () => {
         const submissionData = Object.entries(answers).map(([questionId, answer]) => ({
             questionId: parseInt(questionId),
             score: answer.score,
-            answerText: answer.comment || ''
+            comment: answer.comment || ''
         }));
 
         UserEvaluationService.submitAnswers(periodId, evaluatedUserId, submissionData)
@@ -71,7 +71,7 @@ const EvaluationPage = () => {
                 navigate(`/my-evaluations/${periodId}/assignments`);
             })
             .catch(error => {
-                toast.error('Yanıtlar gönderilirken bir hata oluştu.');
+                toast.error(error.response?.data?.message || 'Yanıtlar gönderilirken bir hata oluştu.');
                 console.error('Error submitting answers:', error);
             });
     };
@@ -83,7 +83,7 @@ const EvaluationPage = () => {
     return (
         <div className="p-4 sm:p-8 bg-gray-50 min-h-screen">
             <div className="max-w-4xl mx-auto">
-                <Button variant="outline" size="sm" onClick={() => navigate(`/my-evaluations/${periodId}/assignments`)} className="mb-4">
+                <Button variant="outline" size="sm" onClick={() => navigate(-1)} className="mb-4">
                     <ArrowLeft className="mr-2 h-4 w-4" />
                     Geri Dön
                 </Button>
@@ -100,31 +100,29 @@ const EvaluationPage = () => {
 
                                 return (
                                     <div key={question.id} className="p-6 border rounded-lg space-y-6 bg-white shadow-sm">
-                                        {/* Question Text */}
                                         <Label className="text-lg font-semibold text-gray-800">{question.questionText}</Label>
 
-                                        {/* Score Selection */}
                                         <div className="space-y-3">
                                             <Label className="text-base font-medium">Puan</Label>
                                             <div className="flex flex-wrap gap-2">
-                                                {[1, 2, 3, 4, 5, 0].map(score => {
-                                                    if (question.hiddenScores.includes(score)) return null;
-                                                    const isSelected = currentAnswer?.score === score;
+                                                {question.scaleOptions.map(option => {
+                                                    if (question.hiddenScores.includes(option.score)) return null;
+
+                                                    const isSelected = currentAnswer?.score === option.score;
                                                     return (
                                                         <Button
-                                                            key={score}
+                                                            key={option.score}
                                                             variant={isSelected ? 'default' : 'outline'}
-                                                            onClick={() => handleAnswerChange(question.id, 'score', score)}
-                                                            className="w-28"
+                                                            onClick={() => handleAnswerChange(question.id, 'score', option.score)}
+                                                            className="flex-grow sm:flex-grow-0"
                                                         >
-                                                            {score === 0 ? 'Fikrim Yok' : score}
+                                                            {option.label}
                                                         </Button>
                                                     );
                                                 })}
                                             </div>
                                         </div>
 
-                                        {/* Comment Section */}
                                         <div className="space-y-3">
                                             <Label htmlFor={`comment-${question.id}`} className="text-base font-medium">
                                                 Yorum {isCommentRequired && <span className="text-red-500">*</span>}
