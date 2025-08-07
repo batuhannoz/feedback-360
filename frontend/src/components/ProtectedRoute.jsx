@@ -1,9 +1,17 @@
-import React from 'react';
-import { useSelector } from 'react-redux';
+import React, {useEffect} from 'react';
+import {useDispatch, useSelector} from 'react-redux';
 import { Navigate, Outlet } from 'react-router-dom';
+import {fetchAndStoreLogoUrl} from "../store/authSlice.js";
 
 const ProtectedRoute = ({ allowedRoles }) => {
-    const { role, accessToken } = useSelector((state) => state.auth);
+    const dispatch = useDispatch();
+    const { role, accessToken, isAuthenticated } = useSelector((state) => state.auth);
+
+    useEffect(() => {
+        if (isAuthenticated) {
+            dispatch(fetchAndStoreLogoUrl());
+        }
+    }, [dispatch, isAuthenticated]);
 
     if (!accessToken) {
         return <Navigate to="/sign-in" replace />;

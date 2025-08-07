@@ -5,6 +5,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Lob;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
@@ -24,11 +25,12 @@ import org.hibernate.annotations.CreationTimestamp;
 @AllArgsConstructor
 @EqualsAndHashCode(of = "id")
 public class Company {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(name = "name",  nullable = false)
+    @Column(name = "name", nullable = false)
     private String name;
 
     @Column(name = "email", nullable = false, unique = true)
@@ -37,4 +39,25 @@ public class Company {
     @Column(name = "created_at", updatable = false)
     @CreationTimestamp
     private LocalDateTime createdAt;
+
+    @Lob
+    @Column(name = "logo", columnDefinition = "LONGBLOB")
+    private byte[] logo;
+
+    @Column(name = "logo_mime_type")
+    private String logoMimeType;
+
+    @Column(name = "phone_number")
+    private String phoneNumber;
+
+    @Lob
+    @Column(name = "address")
+    private String address;
+
+    @Column(name = "website")
+    private String website;
+
+    @Lob
+    @Column(name = "email_footer")
+    private String emailFooter;
 }

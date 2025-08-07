@@ -3,7 +3,7 @@ package com.batuhan.feedback360.service;
 import com.batuhan.feedback360.model.entitiy.EmailLog;
 import com.batuhan.feedback360.model.entitiy.User;
 import com.batuhan.feedback360.model.enums.EmailStatus;
-import com.batuhan.feedback360.model.enums.EmailTemplate;
+import com.batuhan.feedback360.model.enums.EmailTemplateType;
 import com.batuhan.feedback360.repository.EmailLogRepository;
 import com.batuhan.feedback360.util.MessageHandler;
 import java.time.LocalDateTime;
@@ -57,7 +57,7 @@ public class EmailService {
 //        sendAndLogEmail(to, subject, body, EmailTemplate.PERIOD_STARTED, null);
     }
 
-    private void sendAndLogEmail(String to, String subject, String body, EmailTemplate template, User user) {
+    private void sendAndLogEmail(String to, String subject, String body, EmailTemplateType template, User user) {
         EmailLog.EmailLogBuilder logBuilder = EmailLog.builder()
             .toEmail(to)
             .template(template)

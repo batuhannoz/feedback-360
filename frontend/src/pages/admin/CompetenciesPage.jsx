@@ -31,7 +31,7 @@ const CompetenciesPage = () => {
     const [allEvaluators, setAllEvaluators] = useState([]);
     const [evaluationScales, setEvaluationScales] = useState([]);
     const [loading, setLoading] = useState(false);
-    const [expandedCompetency, setExpandedCompetency] = useState(null);
+    const [expandedCompetencies, setExpandedCompetencies] = useState(new Set());
     const selectedPeriod = useSelector((state) => state.period.selectedPeriod);
 
     const [isCompetencyModalOpen, setIsCompetencyModalOpen] = useState(false);
@@ -86,7 +86,15 @@ const CompetenciesPage = () => {
 
 
     const handleToggleCompetency = (competencyId) => {
-        setExpandedCompetency(expandedCompetency === competencyId ? null : competencyId);
+        setExpandedCompetencies(prevExpanded => {
+            const newExpanded = new Set(prevExpanded);
+            if (newExpanded.has(competencyId)) {
+                newExpanded.delete(competencyId);
+            } else {
+                newExpanded.add(competencyId);
+            }
+            return newExpanded;
+        });
     };
 
     const handleToggleEvaluator = async (competencyId, evaluatorId) => {
@@ -215,7 +223,7 @@ const CompetenciesPage = () => {
                                     onClick={() => handleToggleCompetency(competency.id)}
                                 >
                                     <div className="flex items-center">
-                                        {expandedCompetency === competency.id ?
+                                        {expandedCompetencies.has(competency.id) ?
                                             <ChevronDown className="h-5 w-5 mr-2" /> :
                                             <ChevronRight className="h-5 w-5 mr-2" />}
                                         <h2 className="font-semibold text-lg">{competency.title}</h2>
@@ -248,7 +256,7 @@ const CompetenciesPage = () => {
                                         }}><Trash2 className="h-4 w-4" /></Button>
                                     </div>
                                 </div>
-                                {expandedCompetency === competency.id && (
+                                {expandedCompetencies.has(competency.id) && (
                                     <div className="p-4 border-t space-y-4">
                                         <div>
                                             <div className="flex justify-between items-center mb-2">
@@ -307,7 +315,7 @@ const CompetenciesPage = () => {
                     onClose={() => setIsQuestionModalOpen(false)}
                     onSave={handleSaveQuestion}
                     question={currentQuestion}
-                    evaluationScales={evaluationScales} // YENİ: Ölçekleri moda'a prop olarak geç
+                    evaluationScales={evaluationScales}
                 />
             )}
         </div>

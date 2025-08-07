@@ -76,7 +76,6 @@ const EvaluationsPage = () => {
             setSelectedEvaluations([]);
         } catch (error) {
             console.error('Failed to delete evaluation periods', error);
-            // You can add user-facing error handling here
         }
         setIsConfirmModalOpen(false);
     };

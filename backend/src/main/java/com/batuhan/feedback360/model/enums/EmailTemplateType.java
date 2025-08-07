@@ -1,7 +1,8 @@
 package com.batuhan.feedback360.model.enums;
 
-public enum EmailTemplate {
+public enum EmailTemplateType {
     INVITATION,
     PASSWORD_RESET,
-    PERIOD_STARTED
+    PERIOD_STARTED,
+    CUSTOM
 }

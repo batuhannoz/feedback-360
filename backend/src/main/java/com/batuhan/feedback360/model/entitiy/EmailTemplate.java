@@ -1,6 +1,5 @@
 package com.batuhan.feedback360.model.entitiy;
 
-import com.batuhan.feedback360.model.enums.EmailStatus;
 import com.batuhan.feedback360.model.enums.EmailTemplateType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -19,38 +18,39 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "email_log")
-public class EmailLog {
+@Table(name = "email_template")
+public class EmailTemplate {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
-    private User user;
+    @JoinColumn(name = "company_id", nullable = false)
+    private Company company;
+
+    @Column(name = "name", nullable = false)
+    private String name;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "template_id", nullable = false)
-    private EmailTemplateType template;
+    @Column(name = "template_type", nullable = false)
+    private EmailTemplateType templateType;
 
-    @Column(name = "to_email", nullable = false)
-    private String toEmail;
-
-    @Column(name = "sent_at", nullable = false)
-    private LocalDateTime sentAt;
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private EmailStatus status;
+    @Column(name = "subject", nullable = false)
+    private String subject;
 
     @Lob
-    @Column(name = "error_message")
-    private String errorMessage;
+    @Column(name = "body", nullable = false)
+    private String body;
+
+    @Column(name = "created_at", updatable = false)
+    @CreationTimestamp
+    private LocalDateTime createdAt;
 }

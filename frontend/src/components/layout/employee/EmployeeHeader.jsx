@@ -3,13 +3,13 @@ import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { FiLogOut, FiUser } from 'react-icons/fi';
 import { logout } from '../../../store/authSlice.js';
-import logo from '../../../assets/icons/logo.png';
+import logo from '../../../assets/icons/img.png';
 
 const EmployeeHeader = () => {
     const [userMenuOpen, setUserMenuOpen] = useState(false);
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    const { user } = useSelector((state) => state.auth);
+    const { user, logoUrl } = useSelector((state) => state.auth);
 
     const handleLogout = () => {
         dispatch(logout());
@@ -19,7 +19,7 @@ const EmployeeHeader = () => {
     return (
         <header className="bg-white p-4 flex justify-between items-center border-b">
             <div className="flex items-center">
-                <img className="h-10 ml-12" src={logo} alt="Logo" />
+                <img className="h-10 ml-12" src={logoUrl || logo} alt="Logo" />
             </div>
 
             <div className="relative">
